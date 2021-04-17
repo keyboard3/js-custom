@@ -1,0 +1,14 @@
+{
+  "name": "js-custom",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:keyboard3/js-custom.git",
+  "author": "甘春雨 <keyboard3@icloud.com>",
+  "license": "MIT",
+  "scripts": {
+    "promise":"promises-aplus-tests promise.js"
+  },
+  "devDependencies": {
+    "promises-aplus-tests": "^2.1.2"
+  }
+}

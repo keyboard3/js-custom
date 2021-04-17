@@ -1,80 +1,123 @@
+var PENDING = 'pending';
+var FULFILLED = 'fulfilled';
+var REJECTED = 'rejected';
 function Promise(executor) {
-  this.status = "pending";
-  this.notifyResult = null;
-  this.notifyError = null;
-  this.result = null;
-  this.error = null;
+  this.status = PENDING;
+  this.notifyResultList = [];
+  this.notifyErrorList = [];
+  this.value = null;
+  this.reason = null;
   var that = this;
-  executor(resolve, reject);
-  function resolve(result) {
-    that.result = result;
-    that.status = "completed";
-    if (that.notifyResult) that.notifyResult(); //处理结束，告诉下一个
-    else;//首次处理完，等待延迟触发
+  try {
+    executor(resolve, reject);
+  } catch (error) {
+    reject(error);
+  }
+  function resolve(value) {
+    if (that.status !== PENDING) return;
+    that.value = value;
+    that.status = FULFILLED;
+    for (let notifyResult of that.notifyResultList) {
+      notifyResult(that.value);
+    }
   }
   function reject(error) {
-    that.error = error;
-    that.status = "failed";
-    if (that.notifyError) that.notifyError(); //出现异常，告诉下一个出现异常了
-    else;//首次处理完，等待延迟触发
+    if (that.status !== PENDING) return;
+    that.reason = error;
+    that.status = REJECTED;
+    for (let notifyError of that.notifyErrorList) {
+      notifyError(that.reason);
+    }
   }
 }
-//注册父级结果和异常订阅
-Promise.prototype.register = function (resultSubscriber, errorSubscriber) {
-  var parentPromise = this;
-  var nextPromise = new Promise((resolve, reject) => {
-    switch (parentPromise.status) {
-      case "pending": //后续都没有处理，告诉前一个Promise，有结果通知我，正常和异常我都需要
-        parentPromise.notifyResult = notifyResult; //告诉前面，正常的通过它来通知我。
-        parentPromise.notifyError = notifyError; //告诉前面，异常的通过它来通知我
+Promise.prototype.then = function (onFulfilled, onRejected) {
+  var promise1 = this;
+  var promise2 = new Promise((resolve, reject) => {
+    switch (promise1.status) {
+      case PENDING:
+        promise1.notifyResultList.push(notifyResult);
+        promise1.notifyErrorList.push(notifyError);
         break;
-      case "completed":  //首次处理完, 延迟触发。一个目的是等待整个通知链路完成，开始从头通知
-        notifyResult();
+      case FULFILLED:
+        notifyResult(promise1.value);
         break;
-      case "failed": //首次处理完, 延迟触发。一个目的是等待整个通知链路完成，开始从头通知
-        notifyError();
+      case REJECTED:
+        notifyError(promise1.reason);
         break;
     }
-    function notifyResult() {
-      if (!resultSubscriber) return resolvePromiseVal(parentPromise.result); //我无法处理，但是我可以告诉下一个
-      asyncRunResultSubscriber();
-    }
-    function notifyError() {
-      if (!errorSubscriber) return reject(parentPromise.error); //我无法处理异常，但是我可以告诉下一个
-      asyncRunErrorSubscriber();
-    }
-    function asyncRunResultSubscriber() {
+    function notifyResult(value) {
+      if (!onFulfilled) return resolvePromiseX(promise2, value, resolve, reject);
       setTimeout(function () {
         try {
-          var val = resultSubscriber(parentPromise.result); //我可以处理，处理完结果告诉下一个
-          resolvePromiseVal(val);
+          if (typeof onFulfilled == "function") {
+            var x = onFulfilled(value);
+            resolvePromiseX(promise2, x, resolve, reject);
+          } else resolvePromiseX(promise2, value, resolve, reject);
         } catch (error) {
           reject(error);
         }
       });
     }
-    function asyncRunErrorSubscriber() {
+    function notifyError(reason) {
+      if (!onRejected) return reject(reason);
       setTimeout(function () {
         try {
-          var val = errorSubscriber(parentPromise.error); //我可以处理异常，处理完结果告诉下一个
-          resolvePromiseVal(val);
+          if (typeof onRejected == "function") {
+            var x = onRejected(reason);
+            resolvePromiseX(promise2, x, resolve, reject);
+          } else reject(reason)
         } catch (error) {
           reject(error);
         }
       });
-    }
-    function resolvePromiseVal(value) {
-      if (value && (typeof value === 'object' && value instanceof Promise)) {
-        value.register(function (val) { resolve(val) }, function (error) { reject(error) });
-      } else resolve(value);
     }
   });
-  return nextPromise;
+  return promise2;
 }
-Promise.prototype.then = function (resultSubscriber) {
-  return this.register(resultSubscriber, null);
+function resolvePromiseX(promise, x, resolve, reject) {
+  if (promise === x) {
+    return reject(new TypeError('The promise and the return value are the same'))
+  }
+  if (x instanceof Promise) {
+    return x.then(function (val) {
+      resolvePromiseX(promise, val, resolve, reject)
+    }, reject);
+  }
+  if (typeof x == "object" || typeof x == "function") {
+    if (x == null) return resolve(x);
+    try {
+      var then = x.then;
+    } catch (error) {
+      return reject(error);
+    }
+    if (typeof then == "function") {
+      try {
+        var promiseCalled = false;
+        return then.call(x, resolvePromise, rejectPromise);
+        function resolvePromise(y) {
+          if (promiseCalled) return;
+          promiseCalled = true;
+          resolvePromiseX(promise, y, resolve, reject);
+        }
+        function rejectPromise(r) {
+          if (promiseCalled) return;
+          promiseCalled = true;
+          reject(r);
+        }
+      } catch (error) {
+        if (promiseCalled) return;
+        return reject(error);
+      }
+    }
+  }
+  resolve(x);
 }
-Promise.prototype.catch = function (errorSubscriber) {
-  return this.register(null, errorSubscriber);
+Promise.deferred = function () {
+  var value = {};
+  value.promise = new Promise(function (resolve, reject) {
+    value.resolve = resolve;
+    value.reject = reject;
+  });
+  return value;
 }
 module.exports = Promise
