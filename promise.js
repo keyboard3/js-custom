@@ -1,6 +1,7 @@
 var PENDING = 'pending';
 var FULFILLED = 'fulfilled';
 var REJECTED = 'rejected';
+var asyncRun = typeof window !== undefined ? setTimeout : window.queueMicrotask;
 function Promise(executor) {
   this.status = PENDING;
   this.notifyResultList = [];
@@ -47,7 +48,7 @@ Promise.prototype.then = function (onFulfilled, onRejected) {
     }
     function notifyResult(value) {
       if (!onFulfilled) return resolvePromiseX(promise2, value, resolve, reject);
-      setTimeout(function () {
+      asyncRun(function () {
         try {
           if (typeof onFulfilled == "function") {
             var x = onFulfilled(value);
@@ -60,7 +61,7 @@ Promise.prototype.then = function (onFulfilled, onRejected) {
     }
     function notifyError(reason) {
       if (!onRejected) return reject(reason);
-      setTimeout(function () {
+      asyncRun(function () {
         try {
           if (typeof onRejected == "function") {
             var x = onRejected(reason);
@@ -111,6 +112,23 @@ function resolvePromiseX(promise, x, resolve, reject) {
     }
   }
   resolve(x);
+}
+Promise.prototype.catch = function (onRejected) {
+  this.then(null, onRejected);
+}
+Promise.prototype.finally = function (onFinally) {
+  this.then(function () { }, function () { })
+}
+Promise.resolve = function (val) {
+  if (val instanceof Promise) return val;
+  return new Promise(function (resolve) {
+    resolve(val);
+  });
+}
+Promise.reject = function (reason) {
+  return new Promise(function (_, reject) {
+    reject(reason);
+  });
 }
 Promise.deferred = function () {
   var value = {};

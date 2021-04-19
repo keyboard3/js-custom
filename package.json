@@ -6,7 +6,7 @@
   "author": "甘春雨 <keyboard3@icloud.com>",
   "license": "MIT",
   "scripts": {
-    "promise":"promises-aplus-tests promise.js"
+    "promise":"promises-aplus-tests promise.js --grep 2.3.3"
   },
   "devDependencies": {
     "promises-aplus-tests": "^2.1.2"
