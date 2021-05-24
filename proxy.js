@@ -8,6 +8,10 @@ var pipe = (function () {
     var funcStack = [];
     var oproxy = new Proxy({}, {
       get: function (pipeObject, fnName) {
+        if (fnName in Reflect.ownKeys(pipeObject)) {
+          if (typeof pipeObject[fnName] == "function") return pipeObject[fnName].bind(pipeObject);
+          return Reflect.get(pipeObject, fnName);
+        }
         if (fnName == 'get') {
           return funcStack.reduce(function (val, fn) {
             return fn(val);
