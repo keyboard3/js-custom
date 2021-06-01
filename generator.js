@@ -279,12 +279,201 @@ Annotation`同步执行异步操作`
 var main = function* () {
     var result = yield request("http://some.url");
     var resp = JSON.parse(result);
-    console.log(resp.value);
+    console.log("同步执行异步操作", resp.value);
 }
 var it = main();
 var request = function (url) {
-    setTimeout(() => {
-        it.next('{"value":"hello"}');
-    }, 0);
+    setTimeout(() => it.next('{"value":"hello"}'), 0);
 }
 it.next();
+
+Annotation`异步任务的封装`
+var gen = function* () {
+    var result = yield Promise.resolve("异步任务的封装 fetch url wait response");
+    console.log(result);
+}
+var g = gen();
+var result = g.next();
+result.value.then(function (data) {
+    //获取数据 转为data.json()
+    return data;
+}).then(function (data) {
+    g.next(data);
+})
+
+Annotation`基于thunk函数自动运行Generator`
+function thunkify(fn) {
+    return function () {
+        var args = new Array(arguments.length);
+        var ctx = this;
+
+        for (var i = 0; i < args.length; ++i) {
+            args[i] = arguments[i];
+        }
+
+        return function (done) {
+            var called;
+            //thunkify只允许回调函数执行一次，所以只输出一行结果
+            args.push(function () {
+                if (called) return;
+                called = true;
+                done.apply(null, arguments);
+            });
+
+            try {
+                fn.apply(ctx, args);
+            } catch (err) {
+                done(err);
+            }
+        }
+    }
+};
+var readFile = function (fileName, callback) {
+    var response = `${fileName} 文件内容****`;
+    if (fileName.includes("error")) return callback(`访问${fileName} 错误内容`);
+    callback(null, response);
+}
+
+var readFileThunk = thunkify(readFile);
+var gen = function* () {
+    try {
+        var r1 = yield readFileThunk('/etc/ok');
+        console.log(r1.toString());
+        var r2 = yield readFileThunk('/etc/error');
+        console.log(r2.toString());
+    } catch (err) {
+        console.error("内部捕获到：" + err);
+    }
+};
+//基于thunk函数自动运行Generator
+var run = function (fn) {
+    var gen = fn();
+
+    function next(err, data) {
+        if (err) {
+            gen.throw(err);
+            return;
+        }
+        var result = gen.next(data);
+        if (result.done) return;
+        result.value(next);
+    }
+
+    next();
+}
+run(gen);
+
+Annotation`基于Promise对象的自动执行`
+var readFileWithPromise = function (fileName) {
+    return new Promise(function (resolve, reject) {
+        readFile(fileName, function (error, data) {
+            if (error) reject(error);
+            else resolve(data);
+        });
+    });
+};
+var gen = function* () {
+    try {
+        var f1 = yield readFileWithPromise('/etc/ok');
+        var f2 = yield readFileWithPromise('/etc/error');
+        console.log(f1.toString());
+        console.log(f2.toString());
+    } catch (err) {
+        console.error("内部捕获到：" + err);
+    }
+};
+var run = function (gen) {
+    var gn = gen();
+
+    function next(data) {
+        var result = gn.next(data);
+        if (result.done) return result.value;
+        result.value.then(() => next(data), (err) => gn.throw(err));
+    }
+    next();
+}
+run(gen);
+
+Annotation`co自动包装为Promise`
+var co = function (gen) {
+    var ctx = this;
+
+    return new Promise(function (resolve, reject) {
+        if (typeof gen === 'function') gen = gen.call(ctx);
+        if (!gen || typeof gen.next !== 'function') return resolve(gen);
+
+        onFulfilled();
+        function onFulfilled(res) {
+            var ret;
+            try {
+                ret = gen.next(res);
+            } catch (e) {
+                return reject(e);
+            }
+            next(ret);
+        }
+        function onRejected(error) {
+            reject(error);
+        }
+        function next(ret) {
+            if (ret.done) return resolve(ret.value);
+            var value = toPromise.call(ctx, ret.value);
+            if (value && isPromise(value)) return value.then(onFulfilled, onRejected);
+            return onRejected(
+                new TypeError(
+                    'You may only yield a function, promise, generator, array, or object, '
+                    + 'but the following object was passed: "'
+                    + String(ret.value)
+                    + '"'
+                )
+            );
+        }
+        function toPromise(value) {
+            if (isPromise(value)) return value;
+            if (Array.isArray(value) && value.length > 0 && isPromise(value[0])) {
+                return Promise.all(value);
+            }
+            return Promise.resolve(value);
+        }
+        function isPromise(value) {
+            return value instanceof Promise;
+        }
+    });
+}
+
+var gen = function* () {
+    try {
+        var r1 = yield Promise.resolve("/etc/ok").then(res => "co自动包装" + res);
+        console.log(r1.toString());
+        var r2 = yield "co自动包装 this is 第二个内容";
+        console.log(r2.toString());
+        var r3 = yield [new Promise((resolve, reject) => setTimeout(() => resolve("1.1"), 0)), Promise.resolve("2")]
+        console.log("co自动包装", r3);
+    } catch (err) {
+        console.error("内部捕获到：" + err);
+    }
+};
+co(gen);
+
+Annotation`处理Stream`
+const fs = require('fs');
+const stream = fs.createReadStream('./resource/hello.txt');
+let allContent = "";
+co(function* () {
+    while (true) {
+        const res = yield Promise.race([
+            new Promise(resolve => stream.once('data', resolve)),
+            new Promise(resolve => stream.once('end', resolve)),
+            new Promise((resolve, reject) => stream.once('error', reject))
+        ]);
+        if (!res) {
+            break;
+        }
+        stream.removeAllListeners('data');
+        stream.removeAllListeners('end');
+        stream.removeAllListeners('error');
+        console.log("读取一次", res.toString());
+        allContent += res.toString();
+    }
+    console.log("allContent", allContent);
+});

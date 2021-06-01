@@ -17,6 +17,18 @@ function compile(template) {
   })`;
   return script;
 }
+let template = `
+<ul>
+  <% for(var i=0;i<data.supplies.length;i++) { %>
+    <li><%= data.supplies[i] %></li>
+  <% } %>
+</ul>
+`;
+const parse = eval(compile(template));
+
+console.log(parse({ supplies: ["broom", "mop", "cleaner"] }));
+
+
 
 /**
 (function parse(data) {
@@ -36,14 +48,3 @@ function compile(template) {
   return output;
 })  
  */
-
-let template = `
-<ul>
-  <% for(var i=0;i<data.supplies.length;i++) { %>
-    <li><%= data.supplies[i] %></li>
-  <% } %>
-</ul>
-`;
-const parse = eval(compile(template));
-
-console.log(parse({ supplies: ["broom", "mop", "cleaner"] }));
