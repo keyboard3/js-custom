@@ -20,4 +20,5 @@
 - async-await的函数生成器简易实现
 - iterator可迭代接口的实践
 - Generator feature实践
-- 添加class的实践
+- Class的实践
+- module模块加载实践
