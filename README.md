@@ -22,3 +22,4 @@
 - Generator feature实践
 - Class的实践
 - module模块加载实践
+- decorator实践
