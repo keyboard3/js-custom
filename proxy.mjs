@@ -13,8 +13,8 @@ var pipe = (function () {
           return Reflect.get(pipeObject, fnName);
         }
         if (fnName == 'get') {
-          return funcStack.reduce(function (val, fn) {
-            return fn(val);
+          return funcStack.reduce(function (val, fn2) {
+            return fn2?.(val);
           }, value);
         }
         funcStack.push(global[fnName]);
@@ -25,9 +25,9 @@ var pipe = (function () {
   }
 }());
 
-double = n => n * 2;
-pow = n => n * n;
-reverseInt = n => n.toString().split("").reverse().join("") | 0;
+var double = n => n * 2;
+var pow = n => n * n;
+var reverseInt = n => n.toString().split("").reverse().join("") | 0;
 console.log(pipe(3).double.pow.reverseInt.get);
 
 Annotation`apply()`

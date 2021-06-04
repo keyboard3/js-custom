@@ -1,7 +1,4 @@
-function Annotation(templateData) {
-    var s = templateData.raw[0];
-    console.log("".padStart(4, "=") + s + "".padEnd(4, "="));
-}
+import { Annotation } from "./utils.mjs";
 
 Annotation`类的数据类型就是 函数，类本身指向构造函数`
 class Point {
@@ -214,7 +211,7 @@ class A1 {
 class B1 extends A1 {
 }
 var b1 = new B1();
-console.log("构造函数的继承：",Reflect.getPrototypeOf(b1), B1.__proto__ === A1) // true
+console.log("构造函数的继承：", Reflect.getPrototypeOf(b1), B1.__proto__ === A1) // true
 console.log("方法的继承：", B1.prototype.__proto__ === A1.prototype)
 
 Annotation`类的继承实现`

@@ -1,7 +1,4 @@
-function Annotation(templateData) {
-  var s = templateData.raw[0];
-  console.log("".padStart(4, "=") + s + "".padEnd(4, "="));
-}
+import { Annotation } from "./utils.mjs";
 
 Annotation`循环依次执行await Promise`
 var db = { post: (val) => console.log(`依次循环 ${val.toString()}`) };
