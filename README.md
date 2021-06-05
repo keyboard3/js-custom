@@ -23,3 +23,4 @@
 - Class的实践
 - module模块加载实践
 - decorator实践
+- ArrayBuffer实践
