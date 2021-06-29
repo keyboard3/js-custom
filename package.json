@@ -11,9 +11,12 @@
   "devDependencies": {
     "@babel/core": "^7.14.3",
     "@babel/node": "^7.14.2",
-    "promises-aplus-tests": "^2.1.2",
     "@babel/plugin-proposal-decorators": "^7.14.2",
     "@babel/preset-env": "^7.14.4",
-    "decorators": "^0.0.1"
+    "decorators": "^0.0.1",
+    "promises-aplus-tests": "^2.1.2"
+  },
+  "dependencies": {
+    "@types/node": "^15.12.5"
   }
 }
