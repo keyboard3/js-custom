@@ -23,6 +23,7 @@ let instructions = [
   [
     [OP_TYPE.NAME, "a"],
     [OP_TYPE.NAME, "b"],
+    [OP_TYPE.NAME, "d"],
   ],
   [
     [OP_TYPE.NAME, "a"],
@@ -34,30 +35,33 @@ let instructions = [
   [OP_TYPE.CALL, "calcu", [
     [OP_TYPE.NUMBER, "1"],
     [OP_TYPE.NUMBER, "10"],
+    [OP_TYPE.NUMBER, "13"],
   ]]
 ];
 class _Stack {
-  base: Datum[] = [];
+  base: _Datum[] = [];
   frame: Frame;//当前函数执行栈帧
   _ptr: number = 0;
   get ptr() {
     return this.base[this._ptr];
   }
-  push(data: Datum) {
+  push(data: _Datum) {
+    // console.log("push", data);
     this.base.push(data);
     this._ptr++;
   }
   pop() {
+    // console.log("pop", this.base[this._ptr - 1]);
     this._ptr--;
     return this.base.pop();
   }
 }
 function main() {
-  const cconext = new _Context();
+  const context = new _Context();
   const script = new _Script();
-  const result = new Datum(DATUM_TYPE.PRIMARY);
-  codeGenerate(cconext, script, instructions, 0, "\t");
-  codeInterpret(cconext, script, result);
+  const result = new _Datum(DATUM_TYPE.UNDEF);
+  codeGenerate(context, script, instructions, 0, "\t");
+  codeInterpret(context, script, context.globalObject, result);
 }
 setTimeout(() => main());
 
@@ -77,23 +81,22 @@ function codeGenerate(context: _Context, script: _Script, instructions: any[], o
           //根据函数指令创建函数对象
           const nameAtom = atoms[getAtomIndex(ATOM_TYPE.NAME, operand)];
           const funScript = new _Script();
-          const fun = new _Function(nameAtom, funScript);
+          const fun = new _Function(nameAtom, funScript, context.staticLink);
+          fun.scope = new _Scope(context.staticLink);
           //创建函数体
           codeGenerate(context, funScript, funBody, 0, indent);
           //创建方法符号
-          const funSymbol = new _Symbol(SYMOBL_TYPE.PROPERTY);
-          funSymbol.entryValue = fun;
+          const funSymbol = new _Symbol(context.staticLink, SYMOBL_TYPE.PROPERTY, fun);
           fun.name = nameAtom;
           //提前创建参数符号
           fun.script.args = params.map(param => {
-            const parmaSymbol = new _Symbol(SYMOBL_TYPE.ARGUMENT);
-            parmaSymbol.entryValue = atoms[getAtomIndex(ATOM_TYPE.NAME, param[1])];
+            const parmaSymbol = new _Symbol(fun.scope, SYMOBL_TYPE.ARGUMENT, atoms[getAtomIndex(ATOM_TYPE.NAME, param[1])]);
             parmaSymbol.slot = -1;//占位
             return parmaSymbol;
           });
           //给作用域添加符号
-          context.statickLink.list.push(funSymbol);
-          context.statickLink.list.push(...fun.script.args);
+          context.staticLink.list.push(funSymbol);
+          fun.scope.list.push(...fun.script.args);
         }
         break;
       case OP_TYPE.CALL:
@@ -107,12 +110,18 @@ function codeGenerate(context: _Context, script: _Script, instructions: any[], o
       case OP_TYPE.NUMBER:
         appendBuffer(OP_TYPE.NUMBER, getAtomIndex(ATOM_TYPE.NUMBER, parseInt(operand)));
         break;
-      case OP_TYPE.ASSIGN:
       case OP_TYPE.NAME:
-      case OP_TYPE.RETURN:
-        appendBuffer(operator, getAtomIndex(ATOM_TYPE.NAME, operand));
+        appendBuffer(OP_TYPE.NAME, getAtomIndex(ATOM_TYPE.NAME, operand));
         break;
-      default:
+      case OP_TYPE.ASSIGN:
+        appendBuffer(OP_TYPE.NAME, getAtomIndex(ATOM_TYPE.NAME, operand));
+        appendBuffer(operator);
+        break;
+      case OP_TYPE.RETURN:
+        appendBuffer(OP_TYPE.NAME, getAtomIndex(ATOM_TYPE.NAME, operand));
+        appendBuffer(operator);
+        break;
+      case OP_TYPE.ADD:
         appendBuffer(operator);
         break;
     }
@@ -135,12 +144,15 @@ function codeGenerate(context: _Context, script: _Script, instructions: any[], o
     return atoms.length - 1;
   }
 }
-function codeInterpret(context: _Context, script: _Script, result: Datum) {
+function codeInterpret(context: _Context, script: _Script, slink: _Scope, result: _Datum) {
   console.log("《codeInterpret》");
   const stack = context.stack;
   const atoms = script.atoms;
   const codeView = new DataView(script.code);
   let pc = 0;
+  //保存旧上下文
+  const oldslink = context.staticLink;
+  context.staticLink = slink;
   while (pc < codeView.byteLength) {
     //取指令
     let opt = popBuffer();
@@ -152,21 +164,22 @@ function codeInterpret(context: _Context, script: _Script, result: Datum) {
           //通过nameAtom从当前作用域中找到symobl
           let argc = popBuffer();
           //直接从symobl中获取到function
-          const fun: _Function = stack.base[stack._ptr - argc - 1].fun;
+          const funDatum = stack.base[stack._ptr - argc - 1];
+          resolveSymbol(funDatum);
           //创建栈帧
           const frame = new Frame(stack);
           frame.argc = argc;
           frame._argv = stack._ptr - argc;
           frame._vars = stack._ptr;
-          frame.fun = fun;
+          frame.fun = funDatum.fun;
           frame.down = context.stack.frame;
           //将已压入栈的参数，参数符号的栈实参位置设置
           for (let i = 0; i < argc; i++)
-            fun.script.args[i].slot = i;
+            frame.fun.script.args[i].slot = i;
           //压入栈
           stack.frame = frame;
-          const result = new Datum(DATUM_TYPE.PRIMARY);
-          codeInterpret(context, fun.script, result);
+          const result = new _Datum(DATUM_TYPE.UNDEF);
+          codeInterpret(context, frame.fun.script, frame.fun.scope, result);
           //调用完毕恢复栈帧
           stack.frame.vars.forEach(() => stack.pop());//动态变量弹出
           stack.frame.argv.forEach(() => stack.pop());//参数弹出
@@ -174,63 +187,116 @@ function codeInterpret(context: _Context, script: _Script, result: Datum) {
           stack.frame = frame.down;
           //结果压入栈中
           stack.push(result);
-          console.log("call result", result);
+          console.log("call result", result.nval);
         }
         break;
       case OP_TYPE.NUMBER:
-        stack.push(atomToDatum(getAtom()));
+        stack.push(atomTempDatum(getAtom()));
+        break;
+      case OP_TYPE.NAME:
+        stack.push(atomTempDatum(getAtom()));
         break;
       case OP_TYPE.ASSIGN:
         {
-          //将当前栈的数归到栈帧的变量区内
-          stack.frame.nvars++;
-          //创建symbol将nameAtom放到，并slot设置变量区索引
-          const varSymbol = new _Symbol(SYMOBL_TYPE.VARIABLE);
-          varSymbol.slot = stack.frame.nvars - 1;
-          varSymbol.entryValue = getAtom();
-          //将symbol插入到当前作用域中
-          context.statickLink.list.push(varSymbol);
+          let isOk: boolean, lval: _Datum, rval: _Datum;
+          lval = stack.pop();
+          resolveSymbol(lval);
+
+          rval = stack.pop();
+          isOk = resolveValue(rval);
+          if (!isOk) return;
+
+          if (lval.flag != DATUM_TYPE.SYMBOL) {
+            //创建变量
+            // console.log("创建变量", rval)
+            stack.push(rval);
+            stack.frame.nvars++;
+            let symbol = new _Symbol(stack.frame.fun.scope, SYMOBL_TYPE.VARIABLE, lval.atom);
+            symbol.slot = stack.frame.nvars - 1;
+            context.staticLink.list.push(symbol);
+            // console.log("查看变量", stack.frame.vars[symbol.slot], lval.atom);
+          } else {
+            // console.log("修改变量");
+            lval.nval = rval.nval;
+          }
         }
         break;
       case OP_TYPE.RETURN:
-      case OP_TYPE.NAME:
         {
-          //先通过nameAtom找到symbol
-          const nameAtom = getAtom();
-          const nameSymbol = findSymbolByAtom(nameAtom);
-          if (!nameSymbol) throw `${nameAtom.val} not defined`;
-          //然后通过symbol中的slot定位到vars的datum
-          let nameDatum = null;
-          if (nameSymbol.type == SYMOBL_TYPE.PROPERTY) nameDatum = new Datum(DATUM_TYPE.FUNCTION, nameSymbol.entryValue);
-          else {
-            const frame = context.stack.frame;
-            nameDatum = nameSymbol.type == SYMOBL_TYPE.VARIABLE ? frame.vars[nameSymbol.slot] : frame.argv[nameSymbol.slot];
-          }
-          if (opt == OP_TYPE.NAME) stack.push(nameDatum);
-          else Object.assign(result, nameDatum);
+          let val = stack.pop();
+          resolveValue(val);
+          Object.assign(result, val);
         }
         break;
       case OP_TYPE.ADD:
-        let lval = stack.pop();
-        let rval = stack.pop();
-        const value = (lval.atom.val as number) + (rval.atom.val as number);
-        stack.push(atomToDatum(new _Atom(ATOM_TYPE.NUMBER, value)));
+        {
+          let rval: _Datum, lval: _Datum;
+          rval = stack.pop();
+          lval = stack.pop();
+          resolveValue(rval);
+          resolveValue(lval);
+          const value = rval.nval + lval.nval;
+          stack.push(new _Datum(DATUM_TYPE.NUMBER, value));
+        }
         break;
     }
   }
-  function findSymbolByAtom(atom: _Atom) {
-    return context.statickLink.list.find(symbol => {
-      if (symbol.type == SYMOBL_TYPE.PROPERTY && (symbol.entryValue as _Function).name == atom) return true;
-      else if (symbol.type != SYMOBL_TYPE.PROPERTY) {
-        const sAtom = symbol.entryValue as _Atom;
-        return sAtom.flag == atom.flag && sAtom.val == atom.val;
+  //还原旧上下文
+  context.staticLink = oldslink;
+  function resolveValue(datum: _Datum): boolean {
+    resolveSymbol(datum);
+    if (datum.flag == DATUM_TYPE.SYMBOL) {
+      let targetFp: Frame;
+      for (let fp = stack.frame; fp; fp = fp.down) {
+        if (fp.fun.scope == datum.symbol.scope) {
+          targetFp = fp;
+          break;
+        }
       }
-    })
+      if (!targetFp) return false;
+      if (datum.symbol.type == SYMOBL_TYPE.ARGUMENT) Object.assign(datum, targetFp.argv[datum.symbol.slot]);
+      else Object.assign(datum, targetFp.vars[datum.symbol.slot]);
+      if ((datum.flag as any) == DATUM_TYPE.ATOM)
+        resolveValue(datum);
+    } else if (datum.flag == DATUM_TYPE.ATOM) {
+      if (datum.atom.flag == ATOM_TYPE.NUMBER) {
+        datum.flag = DATUM_TYPE.NUMBER;
+        datum.nval = datum.atom.val as number;
+      } else return false;
+    }
+    return true;
   }
-  function atomToDatum(atom: _Atom) {
-    const dataum = new Datum(DATUM_TYPE.PRIMARY);
-    dataum.atom = atom;
-    return dataum;
+  function resolveSymbol(datum: _Datum): boolean {
+    if (datum.flag == DATUM_TYPE.SYMBOL) return true;
+    if (datum.flag == DATUM_TYPE.ATOM) {
+      const symbol = findSymbolByAtom(context.staticLink, datum.atom);
+      if (!symbol) return false;
+      if (symbol.type == SYMOBL_TYPE.PROPERTY) {
+        datum.flag = DATUM_TYPE.FUNCTION;
+        datum.fun = symbol.entryValue as _Function;
+      } else {
+        datum.symbol = symbol;
+        datum.flag = DATUM_TYPE.SYMBOL;
+      }
+      return true;
+    }
+    return false;
+    function findSymbolByAtom(scope: _Scope, atom: _Atom) {
+      let symbol = scope.list.find(symbol => {
+        if (symbol.type == SYMOBL_TYPE.PROPERTY && (symbol.entryValue as _Function).name == atom) return true;
+        else if (symbol.type != SYMOBL_TYPE.PROPERTY) {
+          const sAtom = symbol.entryValue as _Atom;
+          return sAtom.flag == atom.flag && sAtom.val == atom.val;
+        }
+      })
+      if (!symbol && scope.parent) {
+        symbol = findSymbolByAtom(scope.parent, atom);
+      }
+      return symbol;
+    }
+  }
+  function atomTempDatum(atom: _Atom) {
+    return new _Datum(DATUM_TYPE.ATOM, atom);
   }
   function getAtom(): _Atom {
     return atoms[popBuffer()];
@@ -244,10 +310,12 @@ function codeInterpret(context: _Context, script: _Script, result: Datum) {
 //全局上下文
 class _Context {
   constructor() {
-    this.statickLink = new _Scope();
     this.stack = new _Stack();
+    this.globalObject = new _Scope();
+    this.staticLink = this.globalObject;
   }
-  statickLink: _Scope;//全局作用域
+  staticLink: _Scope;//静态作用域
+  globalObject: _Scope;//顶级作用域
   stack: _Stack;//执行的全局操作数存储区
 }
 //函数执行的上下文
@@ -286,11 +354,6 @@ class _Atom {
   val: number | string;
   flag: ATOM_TYPE;
 }
-enum DATUM_TYPE {
-  FUNCTION,//如果是方法则从获得函数信息
-  SYMBOL,//已解析的符号，在stack中有引用
-  PRIMARY,//基础元数据(字面量)类型，从atom中获取
-}
 class _Script {
   constructor() {
     this.code = new ArrayBuffer(1000);
@@ -302,10 +365,12 @@ class _Script {
   atoms: _Atom[];//字面量数组
 }
 class _Function {
-  constructor(name, script) {
+  constructor(name: _Atom, script: _Script, parent: _Scope) {
     this.name = name;
     this.script = script;
+    this.scope = parent;
   }
+  scope: _Scope;
   name: _Atom;
   script: _Script;
 }
@@ -315,27 +380,49 @@ enum SYMOBL_TYPE {
   PROPERTY,//symbol的值
 }
 class _Symbol {
-  constructor(type) {
+  constructor(scope: _Scope, type: SYMOBL_TYPE, value: _Function | _Atom) {
+    this.scope = scope;
     this.type = type;
+    this.entryValue = value;
   }
-  // scope;
+  scope: _Scope;//通过scope确定栈帧，在通过当前栈帧和sym的栈帧和slot确定stack中的datum
   entryValue: _Function | _Atom;
   slot: number;//符号在栈中的索引
   type: SYMOBL_TYPE;//符号的类型 参数/变量
 }
 //存储入栈数据源 method,virable
-class Datum {
-  constructor(flag: DATUM_TYPE, value?: _Atom | _Function | _Symbol) {
+enum DATUM_TYPE {
+  FUNCTION,//如果是方法则从获得函数信息
+  SYMBOL,//已解析的符号，在stack中有引用
+  ATOM,//基础元数据(字面量)类型，从atom中获取
+  STRING,
+  NUMBER,
+  BOOL,
+  UNDEF,
+}
+type DATUM_VALUE = _Atom | _Function | _Symbol | number | boolean | string;
+class _Datum {
+  constructor(flag: DATUM_TYPE, value?: DATUM_VALUE) {
     this.flag = flag;
-    if (flag == DATUM_TYPE.FUNCTION) this.fun = value as any;
-    if (flag == DATUM_TYPE.PRIMARY) this.atom = value as any;
-    if (flag == DATUM_TYPE.SYMBOL) this.symbol = value as any;
+    if (flag == DATUM_TYPE.FUNCTION) this.fun = value as _Function;
+    if (flag == DATUM_TYPE.ATOM) this.atom = value as _Atom;
+    if (flag == DATUM_TYPE.SYMBOL) this.symbol = value as _Symbol;
+    if (flag == DATUM_TYPE.STRING) this.sval = value as string;
+    if (flag == DATUM_TYPE.NUMBER) this.nval = value as number;
+    if (flag == DATUM_TYPE.BOOL) this.bval = value as boolean;
   }
   atom: _Atom;
   fun: _Function;
   symbol: _Symbol;
+  nval: number;
+  bval: boolean;
+  sval: string;
   flag: DATUM_TYPE;
 }
 class _Scope {
+  constructor(parent?: _Scope) {
+    this.parent = parent;
+  }
   list: _Symbol[] = [];//所有符号
+  parent: _Scope | null;
 }
