@@ -17,8 +17,8 @@ function to_command_str(type) {
   if (type == OP_TYPE.RETURN) return "return";
 }
 let instructions = [
-  // [OP_TYPE.NUMBER, "4"],
-  // [OP_TYPE.ASSIGN, "outA"],
+  [OP_TYPE.NUMBER, "4"],
+  [OP_TYPE.ASSIGN, "outA"],
   [OP_TYPE.FUNCTION_DEFINE, "calcu",
   [
     [OP_TYPE.NAME, "a"],
@@ -70,7 +70,7 @@ function codeGenerate(context: _Context, script: _Script, instructions: any[], o
   indent += "\t";
   const isCacheOffset = !!offset;
   const atoms = script.atoms;
-  console.log(indent, "《codeGenerate》", instructions.length, atoms);
+  console.log(indent, "《codeGenerate》", instructions.length);
   const dataView = new DataView(script.code);
   for (let [operator, operand, ...reset] of instructions) {
     console.log(indent, "operator", to_command_str(operator));
@@ -208,17 +208,32 @@ function codeInterpret(context: _Context, script: _Script, slink: _Scope, result
           if (!isOk) return;
 
           if (lval.flag != DATUM_TYPE.SYMBOL) {
-            //创建变量
-            // console.log("创建变量", rval)
-            stack.push(rval);
-            stack.frame.nvars++;
-            let symbol = new _Symbol(stack.frame.fun.scope, SYMOBL_TYPE.VARIABLE, { key: lval.atom });
-            symbol.slot = stack.frame.nvars - 1;
+            //定义symbol
+            let symbol = new _Symbol(context.staticLink, SYMOBL_TYPE.VARIABLE, { key: lval.atom });
+            if (stack.frame) {
+              stack.push(rval);
+              stack.frame.nvars++;
+              symbol.slot = stack.frame.nvars - 1;
+            } else {
+              symbol.entry.value = rval;
+            }
             context.staticLink.list.push(symbol);
-            // console.log("查看变量", stack.frame.vars[symbol.slot], lval.atom);
           } else {
-            // console.log("修改变量");
-            lval.nval = rval.nval;
+            console.log("修改变量", lval);
+            const sym = lval.symbol;
+            //已经是符号，根据符号类型，修改值
+            switch (sym.type) {
+              case SYMOBL_TYPE.ARGUMENT:
+              case SYMOBL_TYPE.VARIABLE:
+                if (sym.entry.value || !stack.frame)
+                  sym.entry.value = rval;
+                else if (sym.type == SYMOBL_TYPE.ARGUMENT) stack.frame.argv[sym.slot] = rval;
+                else stack.frame.nvars[sym.slot] = rval;
+                break;
+              case SYMOBL_TYPE.PROPERTY:
+                (sym.entry.value as _Property).datum = rval;
+                break;
+            }
           }
         }
         break;
@@ -249,7 +264,7 @@ function codeInterpret(context: _Context, script: _Script, slink: _Scope, result
     //如果datum还是符号，则需要进一步解析符号
     if (datum.flag == DATUM_TYPE.SYMBOL) {
       if (SYMOBL_TYPE.PROPERTY == datum.symbol.type) {
-        Object.assign(datum, datum.symbol.entry.value);
+        Object.assign(datum, (datum.symbol.entry.value as _Property).datum);
         resolvePrimary(datum);
         return true;
       }
@@ -278,7 +293,7 @@ function codeInterpret(context: _Context, script: _Script, slink: _Scope, result
       } else if (datum.atom.flag == ATOM_TYPE.STRING) {
         datum.flag = DATUM_TYPE.STRING;
         datum.sval = datum.atom.val as string;
-      } return false;
+      } else return false;
     }
     return true;
   }
@@ -286,18 +301,16 @@ function codeInterpret(context: _Context, script: _Script, slink: _Scope, result
     if (datum.flag != DATUM_TYPE.ATOM) return;
     resolveValue(datum);
   }
+  /**
+   * 将如果是字面量找到symbol
+   */
   function resolveSymbol(datum: _Datum): boolean {
     if (datum.flag == DATUM_TYPE.SYMBOL) return true;
     if (datum.flag == DATUM_TYPE.ATOM) {
       const symbol = findSymbolByAtom(context.staticLink, datum.atom);
       if (!symbol) return false;
-      if (symbol.type == SYMOBL_TYPE.PROPERTY) {
-        datum.flag = DATUM_TYPE.FUNCTION;
-        datum.fun = (symbol.entry.value as _Property).datum.fun;
-      } else {
-        datum.symbol = symbol;
-        datum.flag = DATUM_TYPE.SYMBOL;
-      }
+      datum.symbol = symbol;
+      datum.flag = DATUM_TYPE.SYMBOL;
       return true;
     }
     return false;
