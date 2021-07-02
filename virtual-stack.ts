@@ -68,9 +68,9 @@ setTimeout(() => main());
 //简易栈机虚拟机实现
 function codeGenerate(context: _Context, script: _Script, instructions: any[], offset: number = 0, indent: string) {
   indent += "\t";
-  console.log(indent, "《codeGenerate》", instructions.length);
   const isCacheOffset = !!offset;
   const atoms = script.atoms;
+  console.log(indent, "《codeGenerate》", instructions.length, atoms);
   const dataView = new DataView(script.code);
   for (let [operator, operand, ...reset] of instructions) {
     console.log(indent, "operator", to_command_str(operator));
@@ -86,11 +86,12 @@ function codeGenerate(context: _Context, script: _Script, instructions: any[], o
           //创建函数体
           codeGenerate(context, funScript, funBody, 0, indent);
           //创建方法符号
-          const funSymbol = new _Symbol(context.staticLink, SYMOBL_TYPE.PROPERTY, fun);
+          const funPropery = new _Property(new _Datum(DATUM_TYPE.FUNCTION, fun));
+          const funSymbol = new _Symbol(context.staticLink, SYMOBL_TYPE.PROPERTY, { key: nameAtom, value: funPropery });
           fun.name = nameAtom;
           //提前创建参数符号
           fun.script.args = params.map(param => {
-            const parmaSymbol = new _Symbol(fun.scope, SYMOBL_TYPE.ARGUMENT, atoms[getAtomIndex(ATOM_TYPE.NAME, param[1])]);
+            const parmaSymbol = new _Symbol(fun.scope, SYMOBL_TYPE.ARGUMENT, { key: fun.script.atoms.find(item => item.val == param[1]) });
             parmaSymbol.slot = -1;//占位
             return parmaSymbol;
           });
@@ -165,7 +166,7 @@ function codeInterpret(context: _Context, script: _Script, slink: _Scope, result
           let argc = popBuffer();
           //直接从symobl中获取到function
           const funDatum = stack.base[stack._ptr - argc - 1];
-          resolveSymbol(funDatum);
+          resolveValue(funDatum);
           //创建栈帧
           const frame = new Frame(stack);
           frame.argc = argc;
@@ -211,7 +212,7 @@ function codeInterpret(context: _Context, script: _Script, slink: _Scope, result
             // console.log("创建变量", rval)
             stack.push(rval);
             stack.frame.nvars++;
-            let symbol = new _Symbol(stack.frame.fun.scope, SYMOBL_TYPE.VARIABLE, lval.atom);
+            let symbol = new _Symbol(stack.frame.fun.scope, SYMOBL_TYPE.VARIABLE, { key: lval.atom });
             symbol.slot = stack.frame.nvars - 1;
             context.staticLink.list.push(symbol);
             // console.log("查看变量", stack.frame.vars[symbol.slot], lval.atom);
@@ -245,7 +246,20 @@ function codeInterpret(context: _Context, script: _Script, slink: _Scope, result
   context.staticLink = oldslink;
   function resolveValue(datum: _Datum): boolean {
     resolveSymbol(datum);
+    //如果datum还是符号，则需要进一步解析符号
     if (datum.flag == DATUM_TYPE.SYMBOL) {
+      if (SYMOBL_TYPE.PROPERTY == datum.symbol.type) {
+        Object.assign(datum, datum.symbol.entry.value);
+        resolvePrimary(datum);
+        return true;
+      }
+      //参数和变量先从符号上尝试读取
+      if (datum.symbol.entry.value) {
+        Object.assign(datum, datum.symbol.entry.value);
+        resolvePrimary(datum);
+        return true;
+      }
+      //否则就从栈里找到该符号的栈帧中存储的变量
       let targetFp: Frame;
       for (let fp = stack.frame; fp; fp = fp.down) {
         if (fp.fun.scope == datum.symbol.scope) {
@@ -256,15 +270,21 @@ function codeInterpret(context: _Context, script: _Script, slink: _Scope, result
       if (!targetFp) return false;
       if (datum.symbol.type == SYMOBL_TYPE.ARGUMENT) Object.assign(datum, targetFp.argv[datum.symbol.slot]);
       else Object.assign(datum, targetFp.vars[datum.symbol.slot]);
-      if ((datum.flag as any) == DATUM_TYPE.ATOM)
-        resolveValue(datum);
+      resolvePrimary(datum);
     } else if (datum.flag == DATUM_TYPE.ATOM) {
       if (datum.atom.flag == ATOM_TYPE.NUMBER) {
         datum.flag = DATUM_TYPE.NUMBER;
         datum.nval = datum.atom.val as number;
-      } else return false;
+      } else if (datum.atom.flag == ATOM_TYPE.STRING) {
+        datum.flag = DATUM_TYPE.STRING;
+        datum.sval = datum.atom.val as string;
+      } return false;
     }
     return true;
+  }
+  function resolvePrimary(datum: _Datum) {
+    if (datum.flag != DATUM_TYPE.ATOM) return;
+    resolveValue(datum);
   }
   function resolveSymbol(datum: _Datum): boolean {
     if (datum.flag == DATUM_TYPE.SYMBOL) return true;
@@ -273,7 +293,7 @@ function codeInterpret(context: _Context, script: _Script, slink: _Scope, result
       if (!symbol) return false;
       if (symbol.type == SYMOBL_TYPE.PROPERTY) {
         datum.flag = DATUM_TYPE.FUNCTION;
-        datum.fun = symbol.entryValue as _Function;
+        datum.fun = (symbol.entry.value as _Property).datum.fun;
       } else {
         datum.symbol = symbol;
         datum.flag = DATUM_TYPE.SYMBOL;
@@ -282,13 +302,7 @@ function codeInterpret(context: _Context, script: _Script, slink: _Scope, result
     }
     return false;
     function findSymbolByAtom(scope: _Scope, atom: _Atom) {
-      let symbol = scope.list.find(symbol => {
-        if (symbol.type == SYMOBL_TYPE.PROPERTY && (symbol.entryValue as _Function).name == atom) return true;
-        else if (symbol.type != SYMOBL_TYPE.PROPERTY) {
-          const sAtom = symbol.entryValue as _Atom;
-          return sAtom.flag == atom.flag && sAtom.val == atom.val;
-        }
-      })
+      let symbol = scope.list.find(symbol => symbol.entry?.key == atom);
       if (!symbol && scope.parent) {
         symbol = findSymbolByAtom(scope.parent, atom);
       }
@@ -344,6 +358,7 @@ class Frame {
 //表示字面量
 enum ATOM_TYPE {
   NUMBER,
+  STRING,
   NAME
 }
 class _Atom {
@@ -374,19 +389,29 @@ class _Function {
   name: _Atom;
   script: _Script;
 }
+class _Property {
+  datum: _Datum;
+  constructor(datum: _Datum) {
+    this.datum = datum;
+  }
+}
 enum SYMOBL_TYPE {
   ARGUMENT,//栈中
   VARIABLE,//栈中
   PROPERTY,//symbol的值
 }
+type _SymbolEntry = {
+  key: _Atom;
+  value?: _Datum | _Property;
+}
 class _Symbol {
-  constructor(scope: _Scope, type: SYMOBL_TYPE, value: _Function | _Atom) {
+  constructor(scope: _Scope, type: SYMOBL_TYPE, entry: _SymbolEntry) {
     this.scope = scope;
     this.type = type;
-    this.entryValue = value;
+    this.entry = entry;
   }
   scope: _Scope;//通过scope确定栈帧，在通过当前栈帧和sym的栈帧和slot确定stack中的datum
-  entryValue: _Function | _Atom;
+  entry: _SymbolEntry;
   slot: number;//符号在栈中的索引
   type: SYMOBL_TYPE;//符号的类型 参数/变量
 }
