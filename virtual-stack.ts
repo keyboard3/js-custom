@@ -5,6 +5,7 @@ enum OP_TYPE {
   ASSIGN,
   RETURN,
   FUNCTION_DEFINE,
+  FUNCTION_NATIVE,
   CALL,
 }
 function to_command_str(type) {
@@ -13,12 +14,11 @@ function to_command_str(type) {
   if (type == OP_TYPE.ADD) return "add";
   if (type == OP_TYPE.ASSIGN) return "assign";
   if (type == OP_TYPE.FUNCTION_DEFINE) return "function defined";
+  if (type == OP_TYPE.FUNCTION_NATIVE) return "function native";
   if (type == OP_TYPE.CALL) return "call";
   if (type == OP_TYPE.RETURN) return "return";
 }
 let instructions = [
-  [OP_TYPE.NUMBER, "4"],
-  [OP_TYPE.ASSIGN, "outA"],
   [OP_TYPE.FUNCTION_DEFINE, "calcu",
   [
     [OP_TYPE.NAME, "a"],
@@ -36,6 +36,11 @@ let instructions = [
     [OP_TYPE.NUMBER, "1"],
     [OP_TYPE.NUMBER, "10"],
     [OP_TYPE.NUMBER, "13"],
+  ]],
+  [OP_TYPE.ASSIGN, "outA"],
+  [OP_TYPE.FUNCTION_NATIVE, "log", console.log],
+  [OP_TYPE.CALL, "log", [
+    [OP_TYPE.NAME, "outA"]
   ]]
 ];
 class _Stack {
@@ -46,12 +51,10 @@ class _Stack {
     return this.base[this._ptr];
   }
   push(data: _Datum) {
-    // console.log("push", data);
     this.base.push(data);
     this._ptr++;
   }
   pop() {
-    // console.log("pop", this.base[this._ptr - 1]);
     this._ptr--;
     return this.base.pop();
   }
@@ -75,29 +78,37 @@ function codeGenerate(context: _Context, script: _Script, instructions: any[], o
   for (let [operator, operand, ...reset] of instructions) {
     console.log(indent, "operator", to_command_str(operator));
     switch (operator) {
+      case OP_TYPE.FUNCTION_NATIVE:
       case OP_TYPE.FUNCTION_DEFINE:
         {
           const [params, funBody] = reset;
           //根据函数指令创建函数对象
           const nameAtom = atoms[getAtomIndex(ATOM_TYPE.NAME, operand)];
-          const funScript = new _Script();
-          const fun = new _Function(nameAtom, funScript, context.staticLink);
-          fun.scope = new _Scope(context.staticLink);
-          //创建函数体
-          codeGenerate(context, funScript, funBody, 0, indent);
+          let fun: _Function | null = null;
+
+          if (operator == OP_TYPE.FUNCTION_DEFINE) {
+            const funScript = new _Script();
+            fun = new _Function(nameAtom, funScript, context.staticLink);
+            fun.scope = new _Scope(context.staticLink);
+            //创建函数体
+            codeGenerate(context, funScript, funBody, 0, indent);
+            //提前创建参数符号
+            funScript.args = params.map(param => {
+              const parmaSymbol = new _Symbol(fun.scope, SYMOBL_TYPE.ARGUMENT, { key: funScript.atoms.find(item => item.val == param[1]) });
+              parmaSymbol.slot = -1;//占位
+              return parmaSymbol;
+            });
+            fun.scope.list.push(...fun.script.args);
+          } else {
+            fun = new _Function(nameAtom, null, context.staticLink);
+            fun.call = reset[0];
+          }
           //创建方法符号
           const funPropery = new _Property(new _Datum(DATUM_TYPE.FUNCTION, fun));
           const funSymbol = new _Symbol(context.staticLink, SYMOBL_TYPE.PROPERTY, { key: nameAtom, value: funPropery });
           fun.name = nameAtom;
-          //提前创建参数符号
-          fun.script.args = params.map(param => {
-            const parmaSymbol = new _Symbol(fun.scope, SYMOBL_TYPE.ARGUMENT, { key: fun.script.atoms.find(item => item.val == param[1]) });
-            parmaSymbol.slot = -1;//占位
-            return parmaSymbol;
-          });
           //给作用域添加符号
           context.staticLink.list.push(funSymbol);
-          fun.scope.list.push(...fun.script.args);
         }
         break;
       case OP_TYPE.CALL:
@@ -175,12 +186,22 @@ function codeInterpret(context: _Context, script: _Script, slink: _Scope, result
           frame.fun = funDatum.fun;
           frame.down = context.stack.frame;
           //将已压入栈的参数，参数符号的栈实参位置设置
-          for (let i = 0; i < argc; i++)
-            frame.fun.script.args[i].slot = i;
+          if (frame.fun.script) {
+            for (let i = 0; i < argc; i++)
+              frame.fun.script.args[i].slot = i;
+          }
           //压入栈
           stack.frame = frame;
           const result = new _Datum(DATUM_TYPE.UNDEF);
-          codeInterpret(context, frame.fun.script, frame.fun.scope, result);
+          if (frame.fun.call) {
+            let params = frame.argv.map(item => {
+              resolveValue(item);
+              return item;
+            }).map(item => item.nval || item.sval);
+            frame.fun.call(...params);
+          } else {
+            codeInterpret(context, frame.fun.script, frame.fun.scope, result);
+          }
           //调用完毕恢复栈帧
           stack.frame.vars.forEach(() => stack.pop());//动态变量弹出
           stack.frame.argv.forEach(() => stack.pop());//参数弹出
@@ -188,7 +209,6 @@ function codeInterpret(context: _Context, script: _Script, slink: _Scope, result
           stack.frame = frame.down;
           //结果压入栈中
           stack.push(result);
-          console.log("call result", result.nval);
         }
         break;
       case OP_TYPE.NUMBER:
@@ -401,6 +421,7 @@ class _Function {
   scope: _Scope;
   name: _Atom;
   script: _Script;
+  call?: (...args) => void;//原生方法
 }
 class _Property {
   datum: _Datum;
