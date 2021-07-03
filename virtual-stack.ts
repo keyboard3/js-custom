@@ -73,7 +73,7 @@ function codeGenerate(context: _Context, script: _Script, instructions: any[], o
   indent += "\t";
   const isCacheOffset = !!offset;
   const atoms = script.atoms;
-  console.log(indent, "《codeGenerate》", instructions.length);
+  console.log(indent, "<codeGenerat>", instructions.length);
   const dataView = new DataView(script.code);
   for (let [operator, operand, ...reset] of instructions) {
     console.log(indent, "operator", to_command_str(operator));
@@ -140,7 +140,6 @@ function codeGenerate(context: _Context, script: _Script, instructions: any[], o
   }
   if (!isCacheOffset)
     script.code = script.code.slice(0, offset);
-  console.log(indent, "code", offset);
   return offset;
   function appendBuffer(...params: number[]) {
     console.log(indent, "appendBuffer", to_command_str(params[0]));
@@ -157,7 +156,7 @@ function codeGenerate(context: _Context, script: _Script, instructions: any[], o
   }
 }
 function codeInterpret(context: _Context, script: _Script, slink: _Scope, result: _Datum) {
-  console.log("《codeInterpret》");
+  console.log("<codeInterpret>");
   const stack = context.stack;
   const atoms = script.atoms;
   const codeView = new DataView(script.code);
@@ -173,9 +172,9 @@ function codeInterpret(context: _Context, script: _Script, slink: _Scope, result
     switch (opt) {
       case OP_TYPE.CALL:
         {
-          //通过nameAtom从当前作用域中找到symobl
+          //通过nameAtom从当前作用域中找到symbol
           let argc = popBuffer();
-          //直接从symobl中获取到function
+          //直接从symbol中获取到function
           const funDatum = stack.base[stack._ptr - argc - 1];
           resolveValue(funDatum);
           //创建栈帧
@@ -187,8 +186,10 @@ function codeInterpret(context: _Context, script: _Script, slink: _Scope, result
           frame.down = context.stack.frame;
           //将已压入栈的参数，参数符号的栈实参位置设置
           if (frame.fun.script) {
-            for (let i = 0; i < argc; i++)
+            for (let i = 0; i < argc; i++) {
+              resolveValue(frame.argv[i]);
               frame.fun.script.args[i].slot = i;
+            }
           }
           //压入栈
           stack.frame = frame;
@@ -239,7 +240,6 @@ function codeInterpret(context: _Context, script: _Script, slink: _Scope, result
             }
             context.staticLink.list.push(symbol);
           } else {
-            console.log("修改变量", lval);
             const sym = lval.symbol;
             //已经是符号，根据符号类型，修改值
             switch (sym.type) {
@@ -271,7 +271,7 @@ function codeInterpret(context: _Context, script: _Script, slink: _Scope, result
           lval = stack.pop();
           resolveValue(rval);
           resolveValue(lval);
-          const value = rval.nval + lval.nval;
+          const value = lval.nval + rval.nval;
           stack.push(new _Datum(DATUM_TYPE.NUMBER, value));
         }
         break;
@@ -456,10 +456,11 @@ enum DATUM_TYPE {
   ATOM,//基础元数据(字面量)类型，从atom中获取
   STRING,
   NUMBER,
+  OBJECT,
   BOOL,
   UNDEF,
 }
-type DATUM_VALUE = _Atom | _Function | _Symbol | number | boolean | string;
+type DATUM_VALUE = _Atom | _Function | _Symbol | number | boolean | string | _Scope;
 class _Datum {
   constructor(flag: DATUM_TYPE, value?: DATUM_VALUE) {
     this.flag = flag;
@@ -469,8 +470,10 @@ class _Datum {
     if (flag == DATUM_TYPE.STRING) this.sval = value as string;
     if (flag == DATUM_TYPE.NUMBER) this.nval = value as number;
     if (flag == DATUM_TYPE.BOOL) this.bval = value as boolean;
+    if (flag == DATUM_TYPE.OBJECT) this.object = value as _Scope;
   }
   atom: _Atom;
+  object: _Scope;
   fun: _Function;
   symbol: _Symbol;
   nval: number;
