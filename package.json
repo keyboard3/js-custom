@@ -19,6 +19,7 @@
     "promises-aplus-tests": "^2.1.2"
   },
   "dependencies": {
+    "@babel/polyfill": "^7.12.1",
     "@types/node": "^15.12.5"
   }
 }
