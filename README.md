@@ -1,5 +1,8 @@
 # js-custom
+
 - [简易栈机虚拟机实现](./virtual-stack.ts)
+- [babel](./babel): `官方案例实践`
+  - [多种方式应用配置](./babel/src/babel-config.mjs)
 - [promise](./promise.js)
   - 相关文档
     - [使用 Promise](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Guide/Using_promises)
@@ -8,15 +11,15 @@
     - [JS Promise 实现库](https://medium.com/@ramsunvtech/js-promise-part-2-q-js-when-js-and-rsvp-js-af596232525c)
     - [Promise/A+标准](https://promisesaplus.com/#notes)
   - 跑 Promise/A+测试用例 872 项 `npm run promise`
-- es6标准入门示例
+- es6 标准入门示例
   - [尾调用优化实现](./es6/tail-call-one.mjs)
   - [简易模板编译实现](./es6/template-compile.mjs)
-  - [tag模板字符串实践](./es6/tagged-template.mjs)
-  - [proxy实践](./es6/proxy.mjs)
-  - [async-await的函数生成器简易实现](./es6/async.mjs)
-  - [iterator可迭代接口的实践](./es6/iterator.mjs)
-  - [Generator feature实践](./es6/generator.mjs)
-  - [Class的实践](./es6/class.mjs)
-  - [module模块加载实践](./es6/module.mjs)
-  - [decorator实践](./es6/decorator.js)
-  - [ArrayBuffer实践](./es6/array-buffer.mjs)
+  - [tag 模板字符串实践](./es6/tagged-template.mjs)
+  - [proxy 实践](./es6/proxy.mjs)
+  - [async-await 的函数生成器简易实现](./es6/async.mjs)
+  - [iterator 可迭代接口的实践](./es6/iterator.mjs)
+  - [Generator feature 实践](./es6/generator.mjs)
+  - [Class 的实践](./es6/class.mjs)
+  - [module 模块加载实践](./es6/module.mjs)
+  - [decorator 实践](./es6/decorator.js)
+  - [ArrayBuffer 实践](./es6/array-buffer.mjs)
