@@ -1,5 +1,5 @@
 changeRoot=cd .. &&
-srcDir=babel/src/
+srcDir=babel/
 buildDir=babel/build
 cliConfig=--presets=@babel/env
 config:
