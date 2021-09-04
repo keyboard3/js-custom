@@ -6,6 +6,7 @@
   - [箭头函数示例及说明](./babel/arrowFun.js)
   - [Symbol 示例及说明](./babel/symbol.js)
   - [let/const 示例及说明](./babel/letConst.js)
+  - [函数参数的 default/rest/spread 示例及说明](./babel/defaultRestSpread.js)
 - [promise](./promise.js)
   - 相关文档
     - [使用 Promise](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Guide/Using_promises)
