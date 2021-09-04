@@ -1,6 +1,12 @@
 # Babel
 [官方地址](https://babeljs.io/docs/en/)
 
+## 构建命令
+[Makfile](./Makefile)
+```
+make arrowFun
+```
+
 ## 库
 - @babel/cli:
  用户通过命令行工具调用 babel-core api。它目的是更为方便的通过命令行的方式使用 babel 转义代码
