@@ -109,7 +109,7 @@ rescoverPackageJson();
  *      对于assumptions，parserOpts 和 generatorOpts，对象被合并，而不是被替换。
  *      对于 plugins 和 presets ，它们会根据 plugins/presets/object/function 的entry自身组合的名字作为身份标识进行替换。
  * 
- * package.json的"@babel/env"项覆盖了babel.config.json。即使 cli 中指定了 config-file,优先级还是以 package.json 高
+ * package.json的"@babel/env"项覆盖了babel.config.json。即使 cli 中指定了 config-file(但通过--presets是最高的),优先级还是以 package.json 高
  * 最后结果是以 babelJson2 的配置为主
  **/
 Annotation`多个配置项合并`

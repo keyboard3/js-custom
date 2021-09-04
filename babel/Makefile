@@ -5,4 +5,4 @@ cliConfig=--presets=@babel/env
 config:
 	$(changeRoot) node $(srcDir)$@.mjs
 %:
-	$(changeRoot) npx babel $(srcDir)$@.js $(cliConfig)
+	$(changeRoot) BABEL_SHOW_CONFIG_FOR=$(srcDir)$@.js npx babel --source-root babel  $(srcDir)$@.js

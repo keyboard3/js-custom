@@ -4,6 +4,7 @@
 - [babel](./babel): `官方案例实践, 支持 make 动态构建`
   - [多种方式应用配置](./babel/config.mjs)
   - [箭头函数示例及说明](./babel/arrowFun.js)
+  - [Symbol示例及说明](./babel/symbol.js)
 - [promise](./promise.js)
   - 相关文档
     - [使用 Promise](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Guide/Using_promises)
