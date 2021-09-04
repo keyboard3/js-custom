@@ -2,7 +2,7 @@
 [官方地址](https://babeljs.io/docs/en/)
 
 ## 构建命令
-[Makfile](./Makefile)
+支持动态构建命令: `make [js文件名]`
 ```
 make arrowFun
 ```

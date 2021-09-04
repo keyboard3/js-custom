@@ -1,20 +1,3 @@
-"use strict";
-
-var people = {
-  say: function say() {
-    var _this = this;
-
-    console.log("say this", this);
-    return function () {
-      console.log("inner this", _this);
-    };
-  }
-};
-var method1 = people.say();
-method1();
-var method2 = people.say;
-method2 = method2();
-method2();
 /**
  * 在解析执行到函数调用表达式
  * https://262.ecma-international.org/11.0/#sec-evaluatecall
@@ -54,3 +37,39 @@ method2();
  * preset 预先确定了一组插件，省略了手动一个个添加独立的插件。也可以创建自己的预设来定义自己的插件组合。
  * env 默认包含所有支持最新标准的插件（支持 es6->next）。可以通过配置文件来传递可选参数来细粒度的控制插件
  */
+
+// Expression bodies
+var odds = evens.map(v => v + 1);
+var nums = evens.map((v, i) => v + i);
+
+// Statement bodies
+nums.forEach(v => {
+  if (v % 5 === 0)
+    fives.push(v);
+});
+
+// Lexical this
+var bob = {
+  _name: "Bob",
+  _friends: [],
+  printFriends() {
+    this._friends.forEach(f =>
+      console.log(this._name + " knows " + f));
+  }
+};
+
+// Lexical arguments
+function square() {
+  let example = () => {
+    let numbers = [];
+    for (let number of arguments) {
+      numbers.push(number * number);
+    }
+
+    return numbers;
+  };
+
+  return example();
+}
+
+square(2, 4, 7.5, 8, 11.5, 21); // returns: [4, 16, 56.25, 64, 132.25, 441]
