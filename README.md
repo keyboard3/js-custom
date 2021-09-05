@@ -8,7 +8,8 @@
   - [let/const 示例及说明](./babel/letConst.js)
   - [对象及数组解构示例及说明](./babel/destructuring.js)
   - [函数参数的 default/rest/spread 示例及说明](./babel/defaultRestSpread.js)
-  - [尾调用 说明](./babel/tailCall.js): babel示例中还是依赖了引擎的实现，但是目前就safari支持，实际上鸡肋。个人感觉可以通过识别出尾调用，接管掉函数，由中间的优化函数来触发，具体可见"es6标准入门"中[tco实现](../es6/tail-call-one.mjs)
+  - [迭代器和 for of 示例及说明](./babel/iteratorsForOf.js)
+  - [尾调用说明](./babel/tailCall.js): babel示例中还是依赖了引擎的实现，但是目前就safari(JavascriptCore)支持，实际上鸡肋。感觉可以通过识别无局部变量声明，且最后语句调用自身就可以认为是尾调用则接管掉函数，由中间的优化函数来触发，具体可见"es6标准入门"中[tco实现](../es6/tail-call-one.mjs)
 - [promise](./promise.js)
   - 相关文档
     - [使用 Promise](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Guide/Using_promises)
