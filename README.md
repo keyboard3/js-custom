@@ -1,7 +1,9 @@
 # js-custom
 
 - [简易栈机虚拟机实现](./virtual-stack.ts)
-- [babel](./babel): `官方案例实践, 支持 make 动态构建`
+- [TypeScript](./typescript): `官方案例实践`
+  - [面向 js 开发](./forJSProgrammer.ts)
+- [Babel](./babel): `官方案例实践, 支持 make 动态构建`
   - [多种方式应用配置](./babel/config.mjs)
   - [箭头函数示例及说明](./babel/arrowFun.js)
   - [Symbol 示例及说明](./babel/symbol.js)
@@ -14,7 +16,7 @@
   - [asyncAwait 示例及说明](./babel/asyncAwait.js)
   - [class 示例及说明](./babel/class.js)
   - [对象字面量示例及说明](./babel/objectLiterals.js)
-  - [尾调用说明](./babel/tailCall.js): babel示例中还是依赖了引擎的实现，但是目前就safari(JavascriptCore)支持，实际上鸡肋。感觉可以通过识别无局部变量声明，且最后语句调用自身就可以认为是尾调用则接管掉函数，由中间的优化函数来触发，具体可见"es6标准入门"中 [tco实现](../es6/tail-call-one.mjs)
+  - [尾调用说明](./babel/tailCall.js): babel 示例中还是依赖了引擎的实现，但是目前就 safari(JavascriptCore)支持，实际上鸡肋。感觉可以通过识别无局部变量声明，且最后语句调用自身就可以认为是尾调用则接管掉函数，由中间的优化函数来触发，具体可见"es6 标准入门"中 [tco 实现](../es6/tail-call-one.mjs)
 - [promise](./promise.js)
   - 相关文档
     - [使用 Promise](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Guide/Using_promises)
