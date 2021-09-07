@@ -51,7 +51,7 @@ function deleteUser(user: User) { }
 /**
  * ts 除了支持 js 的基础类型 boolean,bigint,null,number,string,symbol,undefined 可以在 interface 中声明
  * 还扩展了 any, unknown, never, void
- * any: 万能类型
+ * any: 万能类型(只是在出现的地方关闭类型检查器)
  * unknown: 不知道类型，但使用的时候必须转换成明确的类型。场景比较适合通用动态类型接口，如JSON字符串函数转换返回值的类型
  * never: 一个不存在的类型，多用于 Unions，不影响联合的结果
  * void: 函数可以返回 undefined 或者没有返回值

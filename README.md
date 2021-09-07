@@ -2,7 +2,8 @@
 
 - [简易栈机虚拟机实现](./virtual-stack.ts)
 - [TypeScript](./typescript): `官方案例实践`
-  - [面向 js 开发](./forJSProgrammer.ts)
+  - [面向 js 开发](./typescript/forJSProgrammer.ts)
+  - [面向 java/c# 开发](./typescript/forJavaC%23Programmer.ts)
 - [Babel](./babel): `官方案例实践, 支持 make 动态构建`
   - [多种方式应用配置](./babel/config.mjs)
   - [箭头函数示例及说明](./babel/arrowFun.js)
