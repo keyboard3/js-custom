@@ -11,7 +11,8 @@
   - [函数细节](./typescript/functions.ts)
   - [对象类型](./typescript/objects.ts)
   - [类型操作](./type-manipulation)
-    - [泛型](./type-manipulation/generics.ts)
+    - [泛型](./type-manipulation-generics.ts)
+    - [类型操作](./type-manipulation-other.ts):`keyof 类型操作符、typeof 类型操作符、索引访问操作符、条件类型、映射类型、模板字面量类型`
 
 - [Babel](./babel): `官方案例实践, 支持 make 动态构建`
   - [多种方式应用配置](./babel/config.mjs)
