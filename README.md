@@ -8,6 +8,7 @@
   - [日常类型](./typescript/everyday-types.ts)
   - [缩小类型](./typescript/narrowing.ts)
   - [函数细节](./typescript/functions.ts)
+  - [对象类型](./typescript/objects.ts)
 - [Babel](./babel): `官方案例实践, 支持 make 动态构建`
   - [多种方式应用配置](./babel/config.mjs)
   - [箭头函数示例及说明](./babel/arrowFun.js)
