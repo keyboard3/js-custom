@@ -2,6 +2,7 @@
 
 - [简易栈机虚拟机实现](./virtual-stack.ts)
 - [TypeScript](./typescript): `官方案例实践`
+
   - [面向 js 开发](./typescript/for-js-programmer.ts)
   - [面向 java/c# 开发](./typescript/for-java-csharp-programmer.ts)
   - [基础类型](./typescript/basic-types.ts)
@@ -9,6 +10,9 @@
   - [缩小类型](./typescript/narrowing.ts)
   - [函数细节](./typescript/functions.ts)
   - [对象类型](./typescript/objects.ts)
+  - [类型操作](./type-manipulation)
+    - [泛型](./type-manipulation/generics.ts)
+
 - [Babel](./babel): `官方案例实践, 支持 make 动态构建`
   - [多种方式应用配置](./babel/config.mjs)
   - [箭头函数示例及说明](./babel/arrowFun.js)
