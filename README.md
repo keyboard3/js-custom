@@ -1,5 +1,4 @@
 # js-custom
-
 - [简易栈机虚拟机实现](./virtual-stack.ts)
 - [TypeScript](./typescript): `官方案例实践`
 
@@ -13,7 +12,11 @@
   - [类型操作](./type-manipulation)
     - [泛型](./type-manipulation-generics.ts)
     - [类型操作](./type-manipulation-other.ts):`keyof 类型操作符、typeof 类型操作符、索引访问操作符、条件类型、映射类型、模板字面量类型`
-
+  - [模块](./typescript/modules/index.ts)
+  - - [ ] 类
+  - - [ ] 引用：`工具类型、装饰器，声明合并，枚举，迭代器和函数生成器、JSX，Mixins、模块、模块解析、命名空间、命名空间和模块、Symbols、三斜线指令、类型兼容、类型推理、变量声明`
+  - - [ ] 声明文件
+  - - [ ] 项目配置
 - [Babel](./babel): `官方案例实践, 支持 make 动态构建`
   - [多种方式应用配置](./babel/config.mjs)
   - [箭头函数示例及说明](./babel/arrowFun.js)
