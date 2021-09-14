@@ -175,8 +175,8 @@
      */
     let c = createLabel(Math.random() ? "hello" : 42);//IdLabel|NameLabel
 
-    let dValue: string | number = "test";
-    let d = createLabel(dValue)//NameLabel。跟最上面的重载还不一样
+    let dValue: string | number = 23;
+    let d = createLabel(dValue)//确定类型 IdLabel or NameLabel
   }
 
   /**
