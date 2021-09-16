@@ -1,6 +1,6 @@
 changeRoot=cd .. &&
-srcDir=babel/
-buildDir=babel/build
+srcDir=es6-features/
+buildDir=es6-features/build
 cliConfig=--presets=@babel/env
 config:
 	$(changeRoot) node $(srcDir)$@.mjs
