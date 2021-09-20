@@ -1,7 +1,7 @@
 import { memoize } from '../util.mjs';
 import { ensureNodeData, getNodeType } from './index.mjs';
 
-/** DOM node pool, keyed on nodeName. */
+/** DOM 节点池，以 nodeName 为键。 */
 
 let nodes = {};
 

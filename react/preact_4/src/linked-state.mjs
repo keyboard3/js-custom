@@ -1,9 +1,9 @@
 import { empty, isString, isFunction, delve } from './util.mjs';
 
-/** Create an Event handler function that sets a given state property.
- *	@param {Component} component	The component whose state should be updated
- *	@param {string} key				A dot-notated key path to update in the component's state
- *	@param {string} eventPath		A dot-notated key path to the value that should be retrieved from the Event or component
+/** 创建一个设置给定状态属性的事件处理函数。
+ *	@param {Component} component	应该更新状态的组件
+ *	@param {string} key				在组件状态下更新的点标记键路径
+ *	@param {string} eventPath	 应从事件或组件中检索的值的点符号键路径
  *	@returns {function} linkedStateHandler
  *	@private
  */

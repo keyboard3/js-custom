@@ -9,52 +9,50 @@ import { unmountComponent } from './component.mjs';
 import { createNode, collectNode } from '../dom/recycler.mjs';
 
 
-/** Apply differences in a given vnode (and it's deep children) to a real DOM Node.
- *	@param {Element} [dom=null]		A DOM node to mutate into the shape of the `vnode`
- *	@param {VNode} vnode			A VNode (with descendants forming a tree) representing the desired DOM structure
- *	@returns {Element} dom			The created/mutated element
+/** 
+ *  将给定 vnode（及其深子节点）中的差异应用于真实的 DOM 节点.
+ *	@param {Element} [dom=null]	 一个 DOM 节点变成 vnode 形状
+ *	@param {VNode} vnode			代表所需 DOM 结构的 VNode（具有形成树的后代）
+ *	@returns {Element} dom			创建/修改后的 dom
  *	@private
  */
 export default function diff(dom, vnode, context, component) {
+	/** 如果是纯函数组件则不断展开直到得到实际的 vnode */
 	while (isFunctionalComponent(vnode)) {
 		vnode = buildFunctionalComponent(vnode, context);
 	}
-
+	/** 展开之后的 vnode 是 class 组件的话，则得到 dom */
 	if (isFunction(vnode.nodeName)) {
 		return buildComponentFromVNode(dom, vnode, context);
 	}
-
+	/** 处理简单的文本叶子节点 */
 	if (isString(vnode)) {
 		if (dom) {
 			let type = getNodeType(dom);
-			if (type===3) {
+			if (type === 3) {
 				dom[TEXT_CONTENT] = vnode;
 				return dom;
 			}
-			else if (type===1) {
+			else if (type === 1) {
 				collectNode(dom);
 			}
 		}
 		return document.createTextNode(vnode);
 	}
 
-	// return diffNode(dom, vnode, context, component);
-// }
-
-
-/** Morph a DOM node to look like the given VNode. Creates DOM if it doesn't exist. */
-// function diffNode(dom, vnode, context, component) {
+	/** 将 DOM 节点变形为看起来像给定的 VNode。如果 DOM 不存在则创建. */
+	// function diffNode(dom, vnode, context, component) {
 	let out = dom,
 		nodeName = vnode.nodeName || UNDEFINED_ELEMENT;
 
 	if (!dom) {
 		out = createNode(nodeName);
 	}
-	else if (toLowerCase(dom.nodeName)!==nodeName) {
+	else if (toLowerCase(dom.nodeName) !== nodeName) {
 		out = createNode(nodeName);
-		// move children into the replacement node
+		// 将子节点移动到替换节点
 		appendChildren(out, toArray(dom.childNodes));
-		// reclaim element nodes
+		// 回收元素节点
 		recollectNodeTree(dom);
 	}
 
@@ -71,7 +69,7 @@ export default function diff(dom, vnode, context, component) {
 }
 
 
-/** Apply child and attribute changes between a VNode and a DOM Node to the DOM. */
+/** 将 VNode 和 DOM 节点之间的子节点和属性更改应用到 DOM. */
 function innerDiffNode(dom, vnode, context, component) {
 	let children,
 		keyed,
@@ -80,7 +78,7 @@ function innerDiffNode(dom, vnode, context, component) {
 		childrenLen = 0;
 	if (len) {
 		children = [];
-		for (let i=0; i<len; i++) {
+		for (let i = 0; i < len; i++) {
 			let child = dom.childNodes[i],
 				props = child._component && child._component.props,
 				key = props ? props.key : getAccessor(child, 'key');
@@ -103,7 +101,7 @@ function innerDiffNode(dom, vnode, context, component) {
 		vlen = vchildren && vchildren.length,
 		min = 0;
 	if (vlen) {
-		for (let i=0; i<vlen; i++) {
+		for (let i = 0; i < vlen; i++) {
 			let vchild = vchildren[i],
 				child;
 
@@ -111,7 +109,7 @@ function innerDiffNode(dom, vnode, context, component) {
 			// 	vchild = buildFunctionalComponent(vchild);
 			// }
 
-			// attempt to find a node based on key matching
+			// 尝试根据键匹配查找节点
 			if (keyedLen) {
 				let attrs = vchild.attributes,
 					key = attrs && attrs.key;
@@ -122,15 +120,15 @@ function innerDiffNode(dom, vnode, context, component) {
 				}
 			}
 
-			// attempt to pluck a node of the same type from the existing children
-			if (!child && min<childrenLen) {
-				for (let j=min; j<childrenLen; j++) {
+			// 尝试从现有子节点中提取相同类型的节点
+			if (!child && min < childrenLen) {
+				for (let j = min; j < childrenLen; j++) {
 					let c = children[j];
 					if (c && isSameNodeType(c, vchild)) {
 						child = c;
 						children[j] = null;
-						if (j===childrenLen-1) childrenLen--;
-						if (j===min) min++;
+						if (j === childrenLen - 1) childrenLen--;
+						if (j === min) min++;
 						break;
 					}
 				}
@@ -139,9 +137,9 @@ function innerDiffNode(dom, vnode, context, component) {
 			// morph the matched/found/created DOM child to match vchild (deep)
 			child = diff(child, vchild, context, component);
 
-			if (dom.childNodes[i]!==child) {
-				let c = child.parentNode!==dom && child._component,
-					next = dom.childNodes[i+1];
+			if (dom.childNodes[i] !== child) {
+				let c = child.parentNode !== dom && child._component,
+					next = dom.childNodes[i + 1];
 				if (c) deepHook(c, 'componentWillMount');
 				if (next) {
 					dom.insertBefore(child, next);
@@ -162,16 +160,16 @@ function innerDiffNode(dom, vnode, context, component) {
 		}
 	}
 
-	// remove orphaned children
-	if (min<childrenLen) {
+	// 移除孤儿
+	if (min < childrenLen) {
 		removeOrphanedChildren(dom, children);
 	}
 }
 
 
-/** Reclaim children that were unreferenced in the desired VTree */
+/** 回收在所需 VTree 中未引用的子项 */
 export function removeOrphanedChildren(out, children, unmountOnly) {
-	for (let i=children.length; i--; ) {
+	for (let i = children.length; i--;) {
 		let child = children[i];
 		if (child) {
 			recollectNodeTree(child, unmountOnly);
@@ -180,9 +178,9 @@ export function removeOrphanedChildren(out, children, unmountOnly) {
 }
 
 
-/** Reclaim an entire tree of nodes, starting at the root. */
+/** 从根开始回收整个节点树. */
 export function recollectNodeTree(node, unmountOnly) {
-	// @TODO: Need to make a call on whether Preact should remove nodes not created by itself.
+	// @TODO: 需要调用 Preact 是否应该删除不是自己创建的节点。
 	// Currently it *does* remove them. Discussion: https://github.com/developit/preact/issues/39
 	//if (!node[ATTR_KEY]) return;
 
@@ -192,7 +190,7 @@ export function recollectNodeTree(node, unmountOnly) {
 	}
 	else {
 		if (!unmountOnly) {
-			if (getNodeType(node)!==1) {
+			if (getNodeType(node) !== 1) {
 				let p = node.parentNode;
 				if (p) p.removeChild(node);
 				return;
@@ -209,7 +207,7 @@ export function recollectNodeTree(node, unmountOnly) {
 }
 
 
-/** Apply differences in attributes from a VNode to the given DOM Node. */
+/** 将 VNode 的属性差异应用到给定的 DOM 节点. */
 function diffAttributes(dom, vnode) {
 	let old = getNodeAttributes(dom) || EMPTY,
 		attrs = vnode.attributes || EMPTY,
@@ -223,11 +221,11 @@ function diffAttributes(dom, vnode) {
 	}
 
 	// new & updated
-	if (attrs!==EMPTY) {
+	if (attrs !== EMPTY) {
 		for (name in attrs) {
 			if (hasOwnProperty.call(attrs, name)) {
 				value = attrs[name];
-				if (!empty(value) && value!=getAccessor(dom, name)) {
+				if (!empty(value) && value != getAccessor(dom, name)) {
 					setAccessor(dom, name, value);
 				}
 			}

@@ -1,13 +1,13 @@
 import options from './options.mjs';
 
 
-/** Invoke a hook on the `options` export. */
+/** 在 `options` 导出上调用一个 hook. */
 export function optionsHook(name, a, b) {
 	return hook(options, name, a, b);
 }
 
 
-/** Invoke a "hook" method with arguments if it exists.
+/** 如果存在，则调用带有参数的“hook”方法。
  *	@private
  */
 export function hook(obj, name, a, b, c) {
@@ -16,7 +16,7 @@ export function hook(obj, name, a, b, c) {
 }
 
 
-/** Invoke hook() on a component and child components (recursively)
+/** 在组件和子组件上调用 hook()（递归）
  *	@private
  */
 export function deepHook(obj, type) {

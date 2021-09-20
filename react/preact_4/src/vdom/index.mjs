@@ -3,7 +3,7 @@ import { isFunctionalComponent } from './functional-component.mjs';
 import { getNodeType } from '../dom/index.mjs';
 
 
-/** Check if two nodes are equivalent.
+/** 检查两个节点是否等效。
  *	@param {Element} node
  *	@param {VNode} vnode
  *	@private
@@ -18,9 +18,9 @@ export function isSameNodeType(node, vnode) {
 
 
 /**
- * Reconstruct Component-style `props` from a VNode.
- * Ensures default/fallback values from `defaultProps`:
- * Own-properties of `defaultProps` not present in `vnode.attributes` are added.
+ * 从 VNode 重建组件的 `props`。
+ * 确保来自 `defaultProps` 的默认/回退值：
+ * 添加了在 `vnode.attributes` 中不存在的 `defaultProps` 的自有属性。
  * @param {VNode} vnode
  * @returns {Object} props
  */

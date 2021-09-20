@@ -1,6 +1,12 @@
- /** @jsx React.h */
+/** @jsx React.h */
 import React from './src/preact.mjs';
-
+class ChildComponent extends React.Component {
+  render() {
+    return (
+      <Link href="/" >{this.props.children}</Link>
+    );
+  }
+}
 class Clock extends React.Component {
   constructor() {
     super();
@@ -22,9 +28,14 @@ class Clock extends React.Component {
 
   render() {
     let time = new Date(this.state.time).toLocaleTimeString();
-    return <span>{time}</span>;
+    return (
+      <ChildComponent >{time}</ChildComponent>
+    );
   }
 }
+function Link({ children, ...props }) {
+  return <a {...props}>{children}</a>
+};
 
 // 渲染一个clock实例到 body中
 React.render(<Clock />, document.body);

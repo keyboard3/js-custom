@@ -1,10 +1,10 @@
 import diff from './vdom/diff.mjs';
 import { deepHook } from './hooks.mjs';
 
-/** Render JSX into a `parent` Element.
- *	@param {VNode} vnode		A (JSX) VNode to render
- *	@param {Element} parent		DOM element to render into
- *	@param {Element} [merge]	Attempt to re-use an existing DOM tree rooted at `merge`
+/** 将 JSX 渲染成一个 `parent` 元素。
+ *	@param {VNode} vnode		要渲染的 (JSX) VNode
+ *	@param {Element} parent		要渲染到的 DOM 元素
+ *	@param {Element} [merge]	在 merge 时，尝试重新使用以现有 DOM 树为根
  *	@public
  *
  *	@example

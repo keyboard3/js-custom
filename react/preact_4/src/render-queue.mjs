@@ -2,9 +2,12 @@ import options from './options.mjs';
 import { setImmediate } from './util.mjs';
 import { renderComponent } from './vdom/component.mjs';
 
-/** Managed queue of dirty components to be re-rendered */
+/** 要重新渲染的脏组件的托管队列 */
 
-// items/itemsOffline swap on each rerender() call (just a simple pool technique)
+/**
+ * 每次 rerender() 调用时的 items/itemsOffline 交换（只是一个简单的池技术）
+ * 暂时没有看出来，双队列有啥好处
+ */
 let items = [],
 	itemsOffline = [];
 

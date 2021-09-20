@@ -1,6 +1,15 @@
 /** @jsx React.h */
 import React from './src/preact.mjs';
 
+class ChildComponent extends React.Component {
+  render() {
+    return React.h(Link, {
+      href: "/"
+    }, this.props.children);
+  }
+
+}
+
 class Clock extends React.Component {
   constructor() {
     super(); // 设置初始时间
@@ -24,10 +33,18 @@ class Clock extends React.Component {
 
   render() {
     let time = new Date(this.state.time).toLocaleTimeString();
-    return React.h("span", null, time);
+    return React.h(ChildComponent, null, time);
   }
 
-} // 渲染一个clock实例到 body中
+}
 
+function Link({
+  children,
+  ...props
+}) {
+  return React.h("a", props, children);
+}
+
+; // 渲染一个clock实例到 body中
 
 React.render(React.h(Clock, null), document.body);

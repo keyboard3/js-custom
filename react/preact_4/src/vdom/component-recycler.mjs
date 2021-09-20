@@ -1,5 +1,5 @@
-/** Retains a pool of Components for re-use, keyed on component name.
- *	Note: since component names are not unique or even necessarily available, these are primarily a form of sharding.
+/** 保留一个组件池以供重用，以组件名称为键。
+ *	Note: 由于组件名称不是唯一的，甚至不一定可用，因此它们主要是一种分片形式。
  *	@private
  */
 const components = {};
