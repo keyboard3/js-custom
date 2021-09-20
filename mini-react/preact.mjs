@@ -19,7 +19,10 @@ let slice = Array.prototype.slice,
 
 export { options, hooks };
 
-
+/**
+ * 暴露给开发者用来在客户端渲染
+ * 将 component 这个 vnode 渲染成 dom 添加到 parent之下
+ */
 export function render(component, parent) {
 	let built = build(null, component),
 		c = built._component;
@@ -29,7 +32,11 @@ export function render(component, parent) {
 	return build;
 }
 
-
+/** 
+ * 处理 vnode 的 style 和 css 样式适配到 dom
+ * 将 vnode 声明的 style obj 转成字符串定义
+ * 将 className 属性转成 dom 的 class
+ */
 hooks.vnode = ({ attributes }) => {
 	if (!attributes) return;
 
@@ -43,11 +50,12 @@ hooks.vnode = ({ attributes }) => {
 		c = attributes['class'] = attributes.className;
 		delete attributes.className;
 	}
+	/** 如果 class 的值是 obj 就将 key 都链接成字符串 */
 	if (c && !c.substring) {
 		attributes['class'] = hashToClassName(c);
 	}
 };
-
+/** 将对象中驼峰命名的都换成_小写 */
 function styleObjToCss(s) {
 	let str = '',
 		sep = ': ',
@@ -167,7 +175,9 @@ export class Component {
 	}
 }
 
-/** jsx hyperscript generator
+/** 
+ *  jsx 转义成 h 嵌套函数调用生成 vnode
+ *  jsx hyperscript generator
  *  To use, add the directive:
  *  /** @jsx h *\/
  *  import { render, h } from 'react-compat';
@@ -177,6 +187,7 @@ export function h(nodeName, attributes, ...args) {
 	let children = null,
 		sharedArr = [],
 		arr, lastSimple;
+	/** 从 args 处解析 children */
 	if (args.length) {
 		children = [];
 		for (let i = 0; i < args.length; i++) {
@@ -206,6 +217,7 @@ export function h(nodeName, attributes, ...args) {
 	hook(hooks, 'vnode', p);
 	return p;
 }
+/** jsx 转义调用 h 生成的 vnode 结构 */
 class VNode {
 	constructor(nodeName, attributes, children) {
 		this.nodeName = nodeName;
@@ -364,9 +376,13 @@ function build(dom, vnode) {
 		}
 	}
 
-
+	/** 
+	 * 当前 dom 节点更新完之后，然后更新它的 child
+	 * 拷贝一份旧 dom 的 children
+	 */
 	let children = slice.call(out.childNodes);
 	let keyed = {};
+	/** 将旧 dom 的标识缓存 key 的 dom 找出来 */
 	for (let i = children.length; i--;) {
 		let t = children[i].nodeType;
 		let key;
@@ -378,17 +394,18 @@ function build(dom, vnode) {
 		if (key) keyed[key] = children.splice(i, 1)[0];
 	}
 	let newChildren = [];
-
+	/** 将 vnode 的 children 都更新到新的 dom */
 	if (vnode.children) {
 		for (let i = 0, vlen = vnode.children.length; i < vlen; i++) {
 			let vchild = vnode.children[i];
 			let attrs = vchild.attributes;
 			let key, child;
+			/** 根据当前 vnode child 的缓存 key 找到 dom 的 child */
 			if (attrs) {
 				key = attrs.key;
 				child = key && keyed[key];
 			}
-			/** 尝试从现有子节点中提取相同类型的节点 */
+			/** 如果没有缓存 key，则需要遍历 dom 的 child 根据节点的类型来判断是否相等 */
 			if (!child) {
 				let len = children.length;
 				if (children.length) {
@@ -404,11 +421,11 @@ function build(dom, vnode) {
 			newChildren.push(build(child, vchild));
 		}
 	}
-
 	/** 将构造/增强的有序列表应用于父级 */
 	for (let i = 0, len = newChildren.length; i < len; i++) {
-		/** 我们有意在此处重新引用 out.childNodes，因为它是一个实时数组（类似于实时 NodeList） */
+		/** 在比较的 vnode children 产生的 newChildren 过程中就完善新 dom 的 child 节点 */
 		if (out.childNodes[i] !== newChildren[i]) {
+			/** 如果发现是 child 的节点是新加的就尝试加载它的 _component */
 			let child = newChildren[i],
 				c = child._component,
 				next = out.childNodes[i + 1];
@@ -418,8 +435,7 @@ function build(dom, vnode) {
 			if (c) hook(c, 'componentDidMount');
 		}
 	}
-
-	/** 移除孤儿节点，同时触发相应组件实例 */
+	/** 移除孤儿节点，同时触发相应组件实例，这里有bug，如果相同的child被保留下来也会被卸载 */
 	for (let i = 0, len = children.length; i < len; i++) {
 		let child = children[i],
 			c = child._component;
@@ -579,7 +595,8 @@ function setAccessor(node, name, value, old) {
 }
 
 /**
- * TODO 当 dom 的事件被触发，找到这个事件的类型有谁在监听
+ * dom 的监听事件被触发，从 dom 上的 listeners 绑定的时候挂的监听函数
+ * 然后 event 转义一下，然后再交给监听函数
  */
 function eventProxy(e) {
 	let l = this._listeners,
