@@ -1,7 +1,9 @@
-import options from './options.mjs';
 import VNode from './vnode.mjs';
-import { hook } from './hooks.mjs';
+import { optionsHook } from './hooks.mjs';
 import { empty } from './util.mjs';
+
+
+const SHARED_TEMP_ARRAY = [];
 
 
 /** JSX/hyperscript reviver
@@ -12,21 +14,20 @@ import { empty } from './util.mjs';
  *  import { render, h } from 'preact';
  *  render(<span>foo</span>, document.body);
  */
-export default function h(nodeName, attributes, ...args) {
-	let children,
-		sharedArr = [],
-		len = args.length,
-		arr, lastSimple;
-	if (len) {
+export default function h(nodeName, attributes) {
+	let len = arguments.length,
+		children, arr, lastSimple;
+
+	if (len>2) {
 		children = [];
-		for (let i=0; i<len; i++) {
-			let p = args[i];
+		for (let i=2; i<len; i++) {
+			let p = arguments[i];
 			if (empty(p)) continue;
 			if (p.join) {
 				arr = p;
 			}
 			else {
-				arr = sharedArr;
+				arr = SHARED_TEMP_ARRAY;
 				arr[0] = p;
 			}
 			for (let j=0; j<arr.length; j++) {
@@ -49,6 +50,6 @@ export default function h(nodeName, attributes, ...args) {
 	}
 
 	let p = new VNode(nodeName, attributes || undefined, children || undefined);
-	hook(options, 'vnode', p);
+	optionsHook('vnode', p);
 	return p;
 }

@@ -2,7 +2,7 @@
  *	Note: since component names are not unique or even necessarily available, these are primarily a form of sharding.
  *	@private
  */
-let components = {};
+const components = {};
 
 
 export function collectComponent(component) {
@@ -13,14 +13,16 @@ export function collectComponent(component) {
 }
 
 
-export function createComponent(ctor, props) {
-	let list = components[ctor.name];
-	if (list && list.length) {
-		for (let i=list.length; i--; ) {
-			if (list[i].constructor===ctor) {
-				return list.splice(i, 1)[0];
-			}
+export function createComponent(ctor, props, context) {
+	let list = components[ctor.name],
+		len = list && list.length,
+		c;
+	for (let i=0; i<len; i++) {
+		c = list[i];
+		if (c.constructor===ctor) {
+			list.splice(i, 1);
+			return c;
 		}
 	}
-	return new ctor(props);
+	return new ctor(props, context);
 }

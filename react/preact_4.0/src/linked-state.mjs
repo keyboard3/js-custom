@@ -1,4 +1,4 @@
-import { empty, delve } from './util.mjs';
+import { empty, isString, isFunction, delve } from './util.mjs';
 
 /** Create an Event handler function that sets a given state property.
  *	@param {Component} component	The component whose state should be updated
@@ -9,13 +9,14 @@ import { empty, delve } from './util.mjs';
  */
 export function createLinkedState(component, key, eventPath) {
 	let path = key.split('.'),
-		p0 = path[0];
+		p0 = path[0],
+		len = path.length;
 	return function(e) {
 		let t = this,
 			s = component.state,
 			obj = s,
 			v, i;
-		if (typeof eventPath==='string') {
+		if (isString(eventPath)) {
 			v = delve(e, eventPath);
 			if (empty(v) && (t=t._component)) {
 				v = delve(t, eventPath);
@@ -24,11 +25,14 @@ export function createLinkedState(component, key, eventPath) {
 		else {
 			v = (t.nodeName+t.type).match(/^input(checkbox|radio)$/i) ? t.checked : t.value;
 		}
-		if (typeof v==='function') v = v.call(t);
-		for (i=0; i<path.length-1; i++) {
-			obj = obj[path[i]] || {};
+		if (isFunction(v)) v = v.call(t);
+		if (len>1) {
+			for (i=0; i<len-1; i++) {
+				obj = obj[path[i]] || (obj[path[i]] = {});
+			}
+			obj[path[i]] = v;
+			v = s[p0];
 		}
-		obj[path[i]] = v;
-		component.setState({ [p0]: s[p0] });
+		component.setState({ [p0]: v });
 	};
 }

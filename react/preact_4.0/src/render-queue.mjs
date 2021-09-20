@@ -1,4 +1,5 @@
 import options from './options.mjs';
+import { setImmediate } from './util.mjs';
 import { renderComponent } from './vdom/component.mjs';
 
 /** Managed queue of dirty components to be re-rendered */
@@ -10,22 +11,21 @@ let items = [],
 export function enqueueRender(component) {
 	if (items.push(component)!==1) return;
 
-	let d = options.debounceRendering;
-	if (d) d(rerender);
-	else setTimeout(rerender, 0);
+	(options.debounceRendering || setImmediate)(rerender);
 }
 
 
 export function rerender() {
+	if (!items.length) return;
+
 	let currentItems = items,
-		len = currentItems.length;
-	if (!len) return;
+		p;
+
+	// swap online & offline
 	items = itemsOffline;
-	items.length = 0;
 	itemsOffline = currentItems;
-	while (len--) {
-		if (currentItems[len]._dirty) {
-			renderComponent(currentItems[len]);
-		}
+
+	while( (p = currentItems.pop()) ) {
+		if (p._dirty) renderComponent(p);
 	}
 }

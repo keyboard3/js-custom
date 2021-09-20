@@ -1,4 +1,4 @@
-import build from './vdom/build.mjs';
+import diff from './vdom/diff.mjs';
 import { deepHook } from './hooks.mjs';
 
 /** Render JSX into a `parent` Element.
@@ -18,7 +18,7 @@ import { deepHook } from './hooks.mjs';
  */
 export default function render(vnode, parent, merge) {
 	let existing = merge && merge._component && merge._componentConstructor===vnode.nodeName,
-		built = build(merge, vnode),
+		built = diff(merge, vnode),
 		c = !existing && built._component;
 
 	if (c) deepHook(c, 'componentWillMount');

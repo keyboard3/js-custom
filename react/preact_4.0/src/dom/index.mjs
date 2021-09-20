@@ -1,23 +1,28 @@
 import { ATTR_KEY, EMPTY } from '../constants.mjs';
 import { hasOwnProperty, memoize } from '../util.mjs';
-import options from '../options.mjs';
-import { hook } from '../hooks.mjs';
+import { optionsHook } from '../hooks.mjs';
+
+
+export function ensureNodeData(node) {
+	return node[ATTR_KEY] || (node[ATTR_KEY] = {});
+}
+
+
+export function getNodeType(node) {
+	return node.nodeType;
+}
+
 
 /** Append multiple children to a Node.
  *	Uses a Document Fragment to batch when appending 2 or more children
  *	@private
  */
 export function appendChildren(parent, children) {
-	let len = children.length;
-	if (len<=2) {
-		parent.appendChild(children[0]);
-		if (len===2) parent.appendChild(children[1]);
-		return;
-	}
-
-	let frag = document.createDocumentFragment();
-	for (let i=0; i<len; i++) frag.appendChild(children[i]);
-	parent.appendChild(frag);
+	let len = children.length,
+		many = len>2,
+		into = many ? document.createDocumentFragment() : parent;
+	for (let i=0; i<len; i++) into.appendChild(children[i]);
+	if (many) parent.appendChild(into);
 }
 
 
@@ -25,12 +30,12 @@ export function appendChildren(parent, children) {
 /** Retrieve the value of a rendered attribute
  *	@private
  */
-export function getAccessor(node, name, value) {
-	if (name!=='type' && name in node) return node[name];
+export function getAccessor(node, name, value, cache) {
+	if (name!=='type' && name!=='style' && name in node) return node[name];
+	let attrs = node[ATTR_KEY];
+	if (cache!==false && attrs && hasOwnProperty.call(attrs, name)) return attrs[name];
 	if (name==='class') return node.className;
 	if (name==='style') return node.style.cssText;
-	let attrs = node[ATTR_KEY];
-	if (hasOwnProperty.call(attrs, name)) return attrs[name];
 	return value;
 }
 
@@ -46,22 +51,22 @@ export function getAccessor(node, name, value) {
  */
 export function setAccessor(node, name, value) {
 	if (name==='class') {
-		node.className = value;
+		node.className = value || '';
 	}
 	else if (name==='style') {
-		node.style.cssText = value;
+		node.style.cssText = value || '';
 	}
 	else if (name==='dangerouslySetInnerHTML') {
 		node.innerHTML = value.__html;
 	}
-	else if (name in node && name!=='type') {
+	else if (name==='key' || (name in node && name!=='type')) {
 		node[name] = value;
 	}
 	else {
 		setComplexAccessor(node, name, value);
 	}
 
-	node[ATTR_KEY][name] = getAccessor(node, name, value);
+	ensureNodeData(node)[name] = value;
 }
 
 
@@ -94,7 +99,7 @@ function setComplexAccessor(node, name, value) {
  */
 function eventProxy(e) {
 	let fn = this._listeners[normalizeEventName(e.type)];
-	if (fn) return fn.call(this, hook(options, 'event', e) || e);
+	if (fn) return fn.call(this, optionsHook('event', e) || e);
 }
 
 
@@ -124,7 +129,7 @@ export function getNodeAttributes(node) {
 function getRawNodeAttributes(node) {
 	let list = node.attributes;
 	if (!list || !list.getNamedItem) return list;
-	if (list.length) return getAttributesAsObject(list);
+	return getAttributesAsObject(list);
 }
 
 

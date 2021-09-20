@@ -1,7 +1,7 @@
 import { hook } from './hooks.mjs';
-import { extend } from './util.mjs';
+import { extend, clone, isFunction } from './util.mjs';
 import { createLinkedState } from './linked-state.mjs';
-import { triggerComponentRender, setComponentProps } from './vdom/component.mjs';
+import { triggerComponentRender, renderComponent } from './vdom/component.mjs';
 
 /** Base Component class, for he ES6 Class method of creating Components
  *	@public
@@ -21,11 +21,11 @@ export default function Component(props, context) {
 	/** @private */
 	this._renderCallbacks = [];
 	/** @public */
-	this.prevState = this.prevProps = this.prevContext = this.base = null;
+	this.prevState = this.prevProps = this.prevContext = this.base = this._parentComponent = this._component = null;
 	/** @public */
 	this.context = context || null;
 	/** @type {object} */
-	this.props = props || hook(this, 'getDefaultProps') || {};
+	this.props = props || {};
 	/** @type {object} */
 	this.state = hook(this, 'getInitialState') || {};
 }
@@ -77,16 +77,18 @@ extend(Component.prototype, {
 	 */
 	setState(state, callback) {
 		let s = this.state;
-		if (!this.prevState) this.prevState = extend({}, s);
-		extend(s, typeof state==='function' ? state(s, this.props) : state);
+		if (!this.prevState) this.prevState = clone(s);
+		extend(s, isFunction(state) ? state(s, this.props) : state);
 		if (callback) this._renderCallbacks.push(callback);
 		triggerComponentRender(this);
 	},
 
 
-	/** @private */
-	setProps(props, opts) {
-		return setComponentProps(this, props, opts);
+	/** Immediately perform a synchronous re-render of the component.
+	 *	@private
+	 */
+	forceUpdate() {
+		renderComponent(this);
 	},
 
 
@@ -97,7 +99,6 @@ extend(Component.prototype, {
 	 *	@returns VNode
 	 */
 	render() {
-		// return h('div', null, props.children);
 		return null;
 	}
 

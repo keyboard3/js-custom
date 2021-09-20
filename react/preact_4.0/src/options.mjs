@@ -1,4 +1,4 @@
-import { styleObjToCss, hashToClassName } from './util.mjs';
+import { isFunction, isString, styleObjToCss, hashToClassName } from './util.mjs';
 
 /** Global options
  *	@public
@@ -7,32 +7,35 @@ import { styleObjToCss, hashToClassName } from './util.mjs';
 export default {
 
 	/** If `true`, `prop` changes trigger synchronous component updates.
-	 *	@boolean
+	 *	@name syncComponentUpdates
+	 *	@type Boolean
+	 *	@default true
 	 */
-	syncComponentUpdates: true,
+	//syncComponentUpdates: true,
 
 	/** Processes all created VNodes.
 	 *	@param {VNode} vnode	A newly-created VNode to normalize/process
-	 *	@protected
 	 */
 	vnode(n) {
 		let attrs = n.attributes;
-		if (!attrs) return;
+		if (!attrs || isFunction(n.nodeName)) return;
 
 		// normalize className to class.
 		let p = attrs.className;
-		if (p) attrs['class'] = p;
-		delete attrs.className;
+		if (p) {
+			attrs['class'] = p;
+			delete attrs.className;
+		}
 
-		normalize(attrs, 'class', hashToClassName);
-		normalize(attrs, 'style', styleObjToCss);
+		if (attrs['class']) normalize(attrs, 'class', hashToClassName);
+		if (attrs.style) normalize(attrs, 'style', styleObjToCss);
 	}
 };
 
 
 function normalize(obj, prop, fn) {
 	let v = obj[prop];
-	if (v && typeof v!=='string') {
+	if (v && !isString(v)) {
 		obj[prop] = fn(v);
 	}
 }
