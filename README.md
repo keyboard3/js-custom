@@ -1,6 +1,8 @@
 # js-custom
 - [简易栈机虚拟机实现](./virtual-stack.ts)
-- [简易react](./mini-react): `preact 的早期实现`
+- [react](./react): `preact 的 breack change 实现的解读`
+  - [preact 1.0 ](./react/preact_1.0): `最早单文件的优雅实现`
+  - [preact 3.0](./react/preact_3.0): `代码重构拆分之后的实现`
 - [TypeScript](./typescript): `官方案例实践`
 
   - [面向 js 开发](./typescript/for-js-programmer.ts)
