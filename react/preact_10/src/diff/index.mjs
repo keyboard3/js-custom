@@ -7,26 +7,23 @@ import { assign, removeNode } from '../util.mjs';
 import options from '../options.mjs';
 
 /**
- * Diff two virtual nodes and apply proper changes to the DOM
- * @param {import('../internal').PreactElement} parentDom The parent of the DOM element
- * @param {import('../internal').VNode} newVNode The new virtual node
- * @param {import('../internal').VNode} oldVNode The old virtual node
- * @param {object} context The current context object
- * @param {boolean} isSvg Whether or not this element is an SVG node
+ * diff 两个虚拟节点并对 DOM 应用适当的更改
+ * @param {import('../internal').PreactElement} parentDom DOM 元素的父元素
+ * @param {import('../internal').VNode} newVNode 新的虚拟节点
+ * @param {import('../internal').VNode} oldVNode 旧的虚拟节点
+ * @param {object} context 当前上下文对象
+ * @param {boolean} isSvg 此元素是否为 SVG 节点
  * @param {Array<import('../internal').PreactElement>} excessDomChildren
- * @param {Array<import('../internal').Component>} mounts A list of newly
- * mounted components
- * @param {Element | Text} oldDom The current attached DOM
- * element any new dom elements should be placed around. Likely `null` on first
- * render (except when hydrating). Can be a sibling DOM element when diffing
- * Fragments that have siblings. In most cases, it starts out as `oldChildren[0]._dom`.
- * @param {boolean} isHydrating Whether or not we are in hydration
+ * @param {Array<import('../internal').Component>} mounts 新安装的组件列表
+ * @param {Element | Text} oldDom 当前附加的 DOM 元素应该放置任何新的 DOM 元素。
+ * 第一次渲染时可能为“null”（补水时除外）。在比较具有兄弟的 Fragment 时，可以是兄弟 DOM 元素。
+ * 在大多数情况下，它以 `oldChildren[0]._dom` 开头。
+ * @param {boolean} isHydrating 是否处于水合状态
  */
 export function diff(parentDom, newVNode, oldVNode, context, isSvg, excessDomChildren, mounts, force, oldDom, isHydrating) {
 	let tmp, newType = newVNode.type;
 
-	// When passing through createElement it assigns the object
-	// constructor as undefined. This to prevent JSON-injection.
+	// 当通过 createElement 时，它将对象构造函数分配为未定义。这是为了防止 JSON 注入。
 	if (newVNode.constructor !== undefined) return null;
 
 	if (tmp = options._diff) tmp(newVNode);
@@ -36,19 +33,18 @@ export function diff(parentDom, newVNode, oldVNode, context, isSvg, excessDomChi
 			let c, isNew, oldProps, oldState, snapshot, clearProcessingException;
 			let newProps = newVNode.props;
 
-			// Necessary for createContext api. Setting this property will pass
-			// the context value as `this.context` just for this component.
+			// createContext api 所必需的。设置此属性会将上下文值作为`this.context` 传递给该组件。
 			tmp = newType.contextType;
 			let provider = tmp && context[tmp._id];
 			let cctx = tmp ? (provider ? provider.props.value : tmp._defaultValue) : context;
 
-			// Get component and set it to `c`
+			// 获取组件并将其设置为 `c`
 			if (oldVNode._component) {
 				c = newVNode._component = oldVNode._component;
 				clearProcessingException = c._processingException = c._pendingError;
 			}
 			else {
-				// Instantiate the new component
+				// 实例化新组件
 				if ('prototype' in newType && newType.prototype.render) {
 					newVNode._component = c = new newType(newProps, cctx); // eslint-disable-line new-cap
 				}
@@ -67,7 +63,7 @@ export function diff(parentDom, newVNode, oldVNode, context, isSvg, excessDomChi
 				c._renderCallbacks = [];
 			}
 
-			// Invoke getDerivedStateFromProps
+			// 调用 getDerivedStateFromProps
 			if (c._nextState==null) {
 				c._nextState = c.state;
 			}
@@ -75,7 +71,7 @@ export function diff(parentDom, newVNode, oldVNode, context, isSvg, excessDomChi
 				assign(c._nextState==c.state ? (c._nextState = assign({}, c._nextState)) : c._nextState, newType.getDerivedStateFromProps(newProps, c._nextState));
 			}
 
-			// Invoke pre-render lifecycle methods
+			// 调用预渲染生命周期方法
 			if (isNew) {
 				if (newType.getDerivedStateFromProps==null && c.componentWillMount!=null) c.componentWillMount();
 				if (c.componentDidMount!=null) mounts.push(c);
@@ -109,7 +105,7 @@ export function diff(parentDom, newVNode, oldVNode, context, isSvg, excessDomChi
 			c.context = cctx;
 			c.props = newProps;
 			c.state = c._nextState;
-
+			/** hooks 的上下文记录当前组件 */
 			if (tmp = options._render) tmp(newVNode);
 
 			c._dirty = false;
@@ -137,8 +133,7 @@ export function diff(parentDom, newVNode, oldVNode, context, isSvg, excessDomChi
 				tmp.call(c);
 			}
 
-			// Don't call componentDidUpdate on mount or when we bailed out via
-			// `shouldComponentUpdate`
+			// 不要在挂载时或当我们通过 `shouldComponentUpdate` 退出时调用 componentDidUpdate
 			if (!isNew && oldProps!=null && c.componentDidUpdate!=null) {
 				c.componentDidUpdate(oldProps, oldState, snapshot);
 			}
@@ -150,7 +145,7 @@ export function diff(parentDom, newVNode, oldVNode, context, isSvg, excessDomChi
 		else {
 			newVNode._dom = diffElementNodes(oldVNode._dom, newVNode, oldVNode, context, isSvg, excessDomChildren, mounts, isHydrating);
 		}
-
+		/** hooks 的 layoutEffects 调用时机，在同一帧内被调用 */
 		if (tmp = options.diffed) tmp(newVNode);
 	}
 	catch (e) {
@@ -175,17 +170,15 @@ export function commitRoot(mounts, root) {
 }
 
 /**
- * Diff two virtual nodes representing DOM element
- * @param {import('../internal').PreactElement} dom The DOM element representing
- * the virtual nodes being diffed
- * @param {import('../internal').VNode} newVNode The new virtual node
- * @param {import('../internal').VNode} oldVNode The old virtual node
- * @param {object} context The current context object
- * @param {boolean} isSvg Whether or not this DOM node is an SVG node
+ * Diff 表示 DOM 元素的两个虚拟节点
+ * @param {import('../internal').PreactElement} dom 表示被差异化的虚拟节点的 DOM 元素
+ * @param {import('../internal').VNode} newVNode 新的虚拟节点
+ * @param {import('../internal').VNode} oldVNode 旧的虚拟节点
+ * @param {object} context 当前上下文对象
+ * @param {boolean} isSvg 此 DOM 节点是否为 SVG 节点
  * @param {*} excessDomChildren
- * @param {Array<import('../internal').Component>} mounts An array of newly
- * mounted components
- * @param {boolean} isHydrating Whether or not we are in hydration
+ * @param {Array<import('../internal').Component>} mounts 新安装的组件列表
+ * @param {boolean} isHydrating 是否处于水合状态
  * @returns {import('../internal').PreactElement}
  */
 function diffElementNodes(dom, newVNode, oldVNode, context, isSvg, excessDomChildren, mounts, isHydrating) {
@@ -193,7 +186,7 @@ function diffElementNodes(dom, newVNode, oldVNode, context, isSvg, excessDomChil
 	let oldProps = oldVNode.props;
 	let newProps = newVNode.props;
 
-	// Tracks entering and exiting SVG namespace when descending through the tree.
+	// 在树中下降时跟踪进入和退出 SVG 命名空间。
 	isSvg = newVNode.type==='svg' || isSvg;
 
 	if (dom==null && excessDomChildren!=null) {
@@ -212,7 +205,7 @@ function diffElementNodes(dom, newVNode, oldVNode, context, isSvg, excessDomChil
 			return document.createTextNode(newProps);
 		}
 		dom = isSvg ? document.createElementNS('http://www.w3.org/2000/svg', newVNode.type) : document.createElement(newVNode.type);
-		// we created a new parent, so none of the previously attached children can be reused:
+		// 我们创建了一个新的父级，所以之前附加的子级都不能被重用：
 		excessDomChildren = null;
 	}
 
@@ -233,10 +226,10 @@ function diffElementNodes(dom, newVNode, oldVNode, context, isSvg, excessDomChil
 		let newHtml = newProps.dangerouslySetInnerHTML;
 
 		// During hydration, props are not diffed at all (including dangerouslySetInnerHTML)
-		// @TODO we should warn in debug mode when props don't match here.
+		// @TODO 当 props 在这里不匹配时，我们应该在调试模式下发出警告。
 		if (!isHydrating) {
 			if (newHtml || oldHtml) {
-				// Avoid re-applying the same '__html' if it did not changed between re-render
+				// 如果在重新渲染之间没有更改，请避免重新应用相同的“__html”
 				if (!newHtml || !oldHtml || newHtml.__html!=oldHtml.__html) {
 					dom.innerHTML = newHtml && newHtml.__html || '';
 				}
@@ -247,12 +240,12 @@ function diffElementNodes(dom, newVNode, oldVNode, context, isSvg, excessDomChil
 
 		newVNode._children = newVNode.props.children;
 
-		// If the new vnode didn't have dangerouslySetInnerHTML, diff its children
+		// 如果新的 vnode 没有危险的 SetInnerHTML，请区分其子节点
 		if (!newHtml) {
 			diffChildren(dom, newVNode, oldVNode, context, newVNode.type==='foreignObject' ? false : isSvg, excessDomChildren, mounts, EMPTY_OBJ, isHydrating);
 		}
 
-		// (as above, don't diff props during hydration)
+		// （如上，在补水期间不要区分 props）
 		if (!isHydrating) {
 			if (('value' in newProps) && newProps.value!==undefined && newProps.value !== dom.value) dom.value = newProps.value==null ? '' : newProps.value;
 			if (('checked' in newProps) && newProps.checked!==undefined && newProps.checked !== dom.checked) dom.checked = newProps.checked;
@@ -263,7 +256,7 @@ function diffElementNodes(dom, newVNode, oldVNode, context, isSvg, excessDomChil
 }
 
 /**
- * Invoke or update a ref, depending on whether it is a function or object ref.
+ * 调用或更新 ref，具体取决于它是函数还是对象 ref。
  * @param {object|function} ref
  * @param {any} value
  * @param {import('../internal').VNode} vnode
@@ -279,12 +272,10 @@ export function applyRef(ref, value, vnode) {
 }
 
 /**
- * Unmount a virtual node from the tree and apply DOM changes
- * @param {import('../internal').VNode} vnode The virtual node to unmount
- * @param {import('../internal').VNode} parentVNode The parent of the VNode that
- * initiated the unmount
- * @param {boolean} [skipRemove] Flag that indicates that a parent node of the
- * current element is already detached from the DOM.
+ * 从树中卸载虚拟节点并应用 DOM 更改
+ * @param {import('../internal').VNode} vnode 要卸载的虚拟节点
+ * @param {import('../internal').VNode} parentVNode 发起卸载的 VNode 的父节点
+ * @param {boolean} [skipRemove] 指示当前元素的父节点已从 DOM 分离的标志。
  */
 export function unmount(vnode, parentVNode, skipRemove) {
 	let r;
@@ -323,19 +314,16 @@ export function unmount(vnode, parentVNode, skipRemove) {
 	if (dom!=null) removeNode(dom);
 }
 
-/** The `.render()` method for a PFC backing instance. */
+/** PFC 支持实例的 `.render()` 方法。 */
 function doRender(props, state, context) {
 	return this.constructor(props, context);
 }
 
 /**
- * Find the closest error boundary to a thrown error and call it
- * @param {object} error The thrown value
- * @param {import('../internal').VNode} vnode The vnode that threw
- * the error that was caught (except for unmounting when this parameter
- * is the highest parent that was being unmounted)
- * @param {import('../internal').VNode} oldVNode The oldVNode of the vnode
- * that threw, if this VNode threw while diffing
+ * 找到最接近抛出错误的错误边界并调用它
+ * @param {object} error 抛出的值
+ * @param {import('../internal').VNode} vnode 抛出被捕获的错误的 vnode（除了当这个参数是被卸载的最高父级时卸载）
+ * @param {import('../internal').VNode} oldVNode 抛出的 vnode 的 oldVNode，如果这个 VNode 在 diffing 时抛出
  */
 (options)._catchError = function (error, vnode, oldVNode) {
 

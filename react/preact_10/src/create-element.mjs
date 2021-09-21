@@ -2,11 +2,10 @@ import options from './options.mjs';
 import { assign } from './util.mjs';
 
 /**
-  * Create an virtual node (used for JSX)
-  * @param {import('./internal').VNode["type"]} type The node name or Component
-  * constructor for this virtual node
-  * @param {object | null | undefined} [props] The properties of the virtual node
-  * @param {Array<import('./index.mjs').ComponentChildren>} [children] The children of the virtual node
+  * 创建一个虚拟节点（用于 JSX）
+  * @param {import('./internal').VNode["type"]} type 此虚拟节点的节点名称或组件构造函数
+  * @param {object | null | undefined} [props] 虚拟节点的属性
+  * @param {Array<import('./index.mjs').ComponentChildren>} [children] 虚拟节点的孩子
   * @returns {import('./internal').VNode}
   */
 export function createElement(type, props, children) {
@@ -23,8 +22,7 @@ export function createElement(type, props, children) {
 		props.children = children;
 	}
 
-	// "type" may be undefined during development. The check is needed so that
-	// we can display a nice error message with our debug helpers
+	// “类型”在开发过程中可能未定义。需要检查，以便我们可以使用调试助手显示一个很好的错误消息
 	if (type!=null && type.defaultProps!=null) {
 		for (let i in type.defaultProps) {
 			if (props[i]===undefined) props[i] = type.defaultProps[i];
@@ -39,20 +37,17 @@ export function createElement(type, props, children) {
 }
 
 /**
- * Create a VNode (used internally by Preact)
- * @param {import('./internal').VNode["type"]} type The node name or Component
- * Constructor for this virtual node
- * @param {object | string | number | null} props The properties of this virtual node.
- * If this virtual node represents a text node, this is the text of the node (string or number).
- * @param {string | number | null} key The key for this virtual node, used when
- * diffing it against its children
- * @param {import('./internal').VNode["ref"]} ref The ref property that will
- * receive a reference to its created child
+ * 创建一个 VNode（由 Preact 内部使用）
+ * @param {import('./internal').VNode["type"]} type 此虚拟节点的节点名称或组件构造函数
+ * @param {object | string | number | null} props 此虚拟节点的属性。
+ * 如果这个虚拟节点代表一个文本节点，这是节点的文本（字符串或数字）。
+ * @param {string | number | null} key 此虚拟节点的键，在将其与其子节点进行比较时使用
+ * @param {import('./internal').VNode["ref"]} ref 将接收对其创建的子项的引用的 ref 属性
  * @returns {import('./internal').VNode}
  */
 export function createVNode(type, props, key, ref) {
-	// V8 seems to be better at detecting type shapes if the object is allocated from the same call site
-	// Do not inline into createElement and coerceToVNode!
+	// 如果对象是从同一调用站点分配的，V8 似乎更擅长检测类型形状
+	// 不要内联到 createElement 和 coerceToVNode！
 	const vnode = {
 		type,
 		props,
@@ -81,17 +76,16 @@ export function Fragment(props) {
 }
 
 /**
- * Check if a the argument is a valid Preact VNode.
+ * 检查参数是否是有效的 Preact VNode。
  * @param {*} vnode
  * @returns {vnode is import('./internal').VNode}
  */
 export const isValidElement = vnode => vnode!=null && vnode.constructor === undefined;
 
 /**
- * Coerce an untrusted value into a VNode
- * Specifically, this should be used anywhere a user could provide a boolean, string, or number where
- * a VNode or Component is desired instead
- * @param {boolean | string | number | import('./internal').VNode} possibleVNode A possible VNode
+ * 将不受信任的值强制转换为 VNode
+ * 具体来说，这应该用于任何用户可以提供布尔值、字符串或数字的地方，而不是需要 VNode 或组件的地方
+ * @param {boolean | string | number | import('./internal').VNode} possibleVNode 一个可能的 VNode
  * @returns {import('./internal').VNode | null}
  */
 export function coerceToVNode(possibleVNode) {
@@ -100,7 +94,7 @@ export function coerceToVNode(possibleVNode) {
 		return createVNode(null, possibleVNode, null, null);
 	}
 
-	// Clone vnode if it has already been used. ceviche/#57
+	// 如果 vnode 已经被使用，则克隆它
 	if (possibleVNode._dom!=null || possibleVNode._component!=null) {
 		let vnode = createVNode(possibleVNode.type, possibleVNode.props, possibleVNode.key, null);
 		vnode._dom = possibleVNode._dom;

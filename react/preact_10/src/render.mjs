@@ -6,12 +6,10 @@ import options from './options.mjs';
 const IS_HYDRATE = EMPTY_OBJ;
 
 /**
- * Render a Preact virtual node into a DOM element
- * @param {import('./index').ComponentChild} vnode The virtual node to render
- * @param {import('./internal').PreactElement} parentDom The DOM element to
- * render into
- * @param {Element | Text} [replaceNode] Attempt to re-use an
- * existing DOM tree rooted at `replaceNode`
+ * 将 Preact 虚拟节点渲染为 DOM 元素
+ * @param {import('./index').ComponentChild} vnode 要渲染的虚拟节点
+ * @param {import('./internal').PreactElement} parentDom 要渲染到的 DOM 元素
+ * @param {Element | Text} [replaceNode] 尝试重新使用以 `replaceNode` 为根的现有 DOM 树
  */
 export function render(vnode, parentDom, replaceNode) {
 	if (options._root) options._root(vnode, parentDom);
@@ -41,10 +39,9 @@ export function render(vnode, parentDom, replaceNode) {
 }
 
 /**
- * Update an existing DOM element with data from a Preact virtual node
- * @param {import('./index').ComponentChild} vnode The virtual node to render
- * @param {import('./internal').PreactElement} parentDom The DOM element to
- * update
+ * 使用来自 Preact 虚拟节点的数据更新现有 DOM 元素
+ * @param {import('./index').ComponentChild} vnode 要渲染的虚拟节点
+ * @param {import('./internal').PreactElement} parentDom 要更新的 DOM 元素
  */
 export function hydrate(vnode, parentDom) {
 	render(vnode, parentDom, IS_HYDRATE);

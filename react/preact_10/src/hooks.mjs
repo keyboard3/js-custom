@@ -15,7 +15,10 @@ options._render = vnode => {
 
 	currentComponent = vnode._component;
 	currentIndex = 0;
-
+	/** 
+	 * 	这里的目的应该只是为了清空上一次未处理完的effects, 但一般函数组件中调用 useEffect，
+	 * 发现数据变化，就会丢到 requestAnimationFrame 下一帧来的时候消费掉。感觉这里似乎没啥用
+	 */
 	if (currentComponent.__hooks) {
 		currentComponent.__hooks._pendingEffects = handleEffects(currentComponent.__hooks._pendingEffects);
 	}
@@ -50,7 +53,7 @@ options.unmount = vnode => {
 };
 
 /**
- * Get a hook's state from the currentComponent
+ * 从 currentComponent 获取 Hook 的状态
  * @param {number} index The index of the hook to get
  * @returns {import('./internal').HookState}
  */
@@ -179,7 +182,7 @@ export function useContext(context) {
 	const provider = currentComponent.context[context._id];
 	if (!provider) return context._defaultValue;
 	const state = getHookState(currentIndex++);
-	// This is probably not safe to convert to "!"
+	// 这可能不安全转换为“！”
 	if (state._value == null) {
 		state._value = true;
 		provider.sub(currentComponent);
@@ -188,7 +191,7 @@ export function useContext(context) {
 }
 
 /**
- * Display a custom label for a custom hook for the devtools panel
+ * 为 devtools 面板的自定义 hook 显示自定义标签
  * @type {<T>(value: T, cb?: (value: T) => string | number) => void}
  */
 export function useDebugValue(value, formatter) {
@@ -197,11 +200,11 @@ export function useDebugValue(value, formatter) {
 	}
 }
 
-// Note: if someone used Component.debounce = requestAnimationFrame,
-// then effects will ALWAYS run on the NEXT frame instead of the current one, incurring a ~16ms delay.
-// Perhaps this is not such a big deal.
+// Note: 如果使用 Component.debounce = requestAnimationFrame,
+// 然后 effect 将始终在下一帧而不是当前帧上运行，从而导致约 16 毫秒的延迟。
+// 也许这没什么大不了的。
 /**
- * Invoke a component's pending effects after the next frame renders
+ * 在下一帧渲染后调用组件的 pending effects
  * @type {(component: import('./internal').Component) => void}
  */
 /* istanbul ignore next */
@@ -223,7 +226,7 @@ function flushAfterPaintEffects() {
 const RAF_TIMEOUT = 100;
 
 /**
- * requestAnimationFrame with a timeout in case it doesn't fire (for example if the browser tab is not visible)
+ * requestAnimationFrame 超时，以防它不触发（例如，如果浏览器选项卡不可见）
  */
 function safeRaf(callback) {
 	const done = () => {

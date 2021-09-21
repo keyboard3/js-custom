@@ -2,13 +2,12 @@ import { IS_NON_DIMENSIONAL } from '../constants.mjs';
 import options from '../options.mjs';
 
 /**
- * Diff the old and new properties of a VNode and apply changes to the DOM node
- * @param {import('../internal').PreactElement} dom The DOM node to apply
- * changes to
- * @param {object} newProps The new props
- * @param {object} oldProps The old props
- * @param {boolean} isSvg Whether or not this node is an SVG node
- * @param {boolean} hydrate Whether or not we are in hydration mode
+ * Diff VNode 的新旧属性并将更改应用于 DOM 节点
+ * @param {import('../internal').PreactElement} dom 要应用更改的 DOM 节点
+ * @param {object} newProps 新 props
+ * @param {object} oldProps 旧 props
+ * @param {boolean} isSvg 此节点是否为 SVG 节点
+ * @param {boolean} hydrate 我们是否处于补水模式
  */
 export function diffProps(dom, newProps, oldProps, isSvg, hydrate) {
 	let i;
@@ -36,12 +35,12 @@ function setStyle(style, key, value) {
 }
 
 /**
- * Set a property value on a DOM node
- * @param {import('../internal').PreactElement} dom The DOM node to modify
- * @param {string} name The name of the property to set
- * @param {*} value The value to set the property to
- * @param {*} oldValue The old value the property had
- * @param {boolean} isSvg Whether or not this DOM node is an SVG node or not
+ * 在 DOM 节点上设置属性值
+ * @param {import('../internal').PreactElement} dom 要修改的 DOM 节点
+ * @param {string} name 要设置的属性的名称
+ * @param {*} value 将属性设置为的值
+ * @param {*} oldValue 这个属性旧值
+ * @param {boolean} isSvg 此 DOM 节点是否为 SVG 节点
  */
 function setProperty(dom, name, value, oldValue, isSvg) {
 	name = isSvg ? (name==='className' ? 'class' : name) : (name==='class' ? 'className' : name);
@@ -117,8 +116,8 @@ function setProperty(dom, name, value, oldValue, isSvg) {
 }
 
 /**
- * Proxy an event to hooked event handlers
- * @param {Event} e The event object from the browser
+ * 将事件代理到挂钩的事件处理程序
+ * @param {Event} e 来自浏览器的事件对象
  * @private
  */
 function eventProxy(e) {

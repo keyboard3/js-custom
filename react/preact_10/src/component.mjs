@@ -110,7 +110,7 @@ export function getDomSibling(vnode, childIndex) {
 
 /**
  * 就地触发组件的重新渲染。
- * @param {import('./internal').Component} c The component to rerender
+ * @param {import('./internal').Component} c 要重新渲染的组件
  */
 function renderComponent(component) {
 	let vnode = component._vnode,

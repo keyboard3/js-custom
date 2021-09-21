@@ -3,7 +3,7 @@
 - [react](./react): `preact 的 breack change 实现的解读`
   - [preact 1 ](./react/preact_1): `最早单文件的优雅实现`
   - [preact 4](./react/preact_4): `代码重构拆分及性能优化`
-  - [preact 10](./react/preact_10): `支持 hooks`
+  - [preact 10](./react/preact_10): `优化 diff 算法以及支持 hooks`
   - [react 1.3](./react_1.3): `最早的 react 版本`
 - [TypeScript](./typescript): `官方案例实践`
 
