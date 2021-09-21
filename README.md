@@ -4,6 +4,7 @@
   - [preact 1 ](./react/preact_1): `最早单文件的优雅实现`
   - [preact 4](./react/preact_4): `代码重构拆分及性能优化`
   - [preact 10](./react/preact_10): `支持 hooks`
+  - [react 1.3](./react_1.3): `最早的 react 版本`
 - [TypeScript](./typescript): `官方案例实践`
 
   - [面向 js 开发](./typescript/for-js-programmer.ts)
