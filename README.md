@@ -5,6 +5,8 @@
   - [preact 4](./react/preact_4): `代码重构拆分及性能优化`
   - [preact 10](./react/preact_10): `优化 diff 算法以及支持 hooks`
   - [react 1.3](./react_1.3): `最早的 react 版本`
+- [webpack](./webpack)
+  - [init commit 版本](./webpack/init_commit): `浏览器模块核心打包过程`
 - [TypeScript](./typescript): `官方案例实践`
 
   - [面向 js 开发](./typescript/for-js-programmer.ts)

@@ -21,6 +21,8 @@
   },
   "dependencies": {
     "@babel/polyfill": "^7.12.1",
-    "@types/node": "^15.12.5"
+    "@types/node": "^15.12.5",
+    "esprima": "^4.0.1",
+    "optimist": "^0.6.1"
   }
 }
