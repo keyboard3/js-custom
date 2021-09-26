@@ -119,6 +119,17 @@ Promise.prototype.catch = function (onRejected) {
 Promise.prototype.finally = function (onFinally) {
   this.then(function () { }, function () { })
 }
+Promise.all = function (array) {
+  const resultArray = [];
+  return new Promise((resolve, reject) => {
+    array.forEach((item, index) => {
+      item.then((res) => {
+        resultArray[index] = res;
+        if (resultArray.length >= array.length) resolve(resultArray);
+      }).catch(err => reject(err));
+    });
+  });
+}
 Promise.resolve = function (val) {
   if (val instanceof Promise) return val;
   return new Promise(function (resolve) {
