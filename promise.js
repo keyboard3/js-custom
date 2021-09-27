@@ -121,12 +121,39 @@ Promise.prototype.finally = function (onFinally) {
 }
 Promise.all = function (array) {
   const resultArray = [];
+  let endCount = array.length;
   return new Promise((resolve, reject) => {
     array.forEach((item, index) => {
       item.then((res) => {
+        endCount--;
         resultArray[index] = res;
-        if (resultArray.length >= array.length) resolve(resultArray);
+        if (endCount <= 0) resolve(resultArray);
       }).catch(err => reject(err));
+    });
+  });
+}
+Promise.allSettled = function (array) {
+  const resultArray = [];
+  let endCount = array.length;
+  return new Promise((resolve, reject) => {
+    array.forEach((item, index) => {
+      item.then((res) => {
+        endCount--;
+        resultArray[index] = { status: "fulfilled", value: res };
+      }).catch(err => {
+        endCount--;
+        resultArray[index] = { status: "rejected", reson: err };
+      }).then(() => {
+        if (endCount <= 0) resolve(resultArray);
+      })
+    });
+  });
+}
+Promise.race = function (array) {
+  return new Promise((resolve, reject) => {
+    array.forEach(item => {
+      item.then(res => resolve(res))
+        .reject(err => reject(err));
     });
   });
 }
