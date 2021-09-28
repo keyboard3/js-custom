@@ -1,8 +1,10 @@
 /******/webpackJsonp(1, {
-/******/2: function(module, exports, require) {
+/******/3: function(module, exports, require) {
 
-module.exports = function sayHelloB() {
-  console.log("hello b")
+const sayHelloC = require(1);
+module.exports = function sayHelloA() {
+  console.log("hello a");
+  sayHelloC();
 }
 
 /******/},

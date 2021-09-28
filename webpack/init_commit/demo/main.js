@@ -1,8 +1,10 @@
-/** 同步 */
-const sayHelloA = require("./a");
-sayHelloA();
-/** 异步 */
+const sayHello = require("./c");
+sayHello();
+require.ensure(["./a"], function (require) {
+  var sayHello = require("./a");
+  sayHello();
+});
 require.ensure(["./b"], function (require) {
-  var sayHelloB = require("./b");
-  sayHelloB();
+  var sayHello = require("./b");
+  sayHello();
 });
