@@ -1,0 +1,15 @@
+{
+  "name": "with_loader",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "esprima": "0.9.x",
+    "optimist": "0.2.x",
+    "json-loader": "0.1.x",
+    "uglify-js": "1.2.x",
+    "sprintf": "0.1.x",
+    "css-loader": "0.1.x",
+    "style-loader": "0.2.x"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "name": "init_commit",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "esprima": "0.9.x",
+    "optimist": "0.2.x"
+  }
+}

@@ -2,6 +2,7 @@
 /******/	return function(modules) {
 /******/		var installedModules = {}, installedChunks = {0:1};
 /******/		function require(moduleId) {
+/******/			if(typeof moduleId !== "number") throw new Error("Cannot find module '"+moduleId+"'");
 /******/			if(installedModules[moduleId])
 /******/				return installedModules[moduleId].exports;
 /******/			var module = installedModules[moduleId] = {
@@ -19,6 +20,7 @@
 /******/				var head = document.getElementsByTagName('head')[0];
 /******/				var script = document.createElement('script');
 /******/				script.type = 'text/javascript';
+/******/				script.charset = 'utf-8';
 /******/				script.src = modules.c+chunkId+modules.a;
 /******/				head.appendChild(script);
 /******/			}
@@ -34,41 +36,3 @@
 /******/		return require(0);
 /******/	}
 /******/})(document)
-/******/({a:".bundle.js",b:"webpackJsonp",c:"",
-/******/0: function(module, exports, require) {
-
-console.log("===main");
-const sayHello = require(1");
-sayHello();
-require.ensure(0], function (require) {
-  var sayHello = require(2");
-  sayHello();
-});
-require.ensure(2], function (require) {
-  var sayHello = require(3");
-  sayHello();
-});
-
-/******/},
-/******/
-/******/1: function(module, exports, require) {
-
-console.log("===c");
-const a = require(2");
-module.exports = function sayHelloC() {
-  console.log("hello c", a);
-}
-
-/******/},
-/******/
-/******/2: function(module, exports, require) {
-
-module.exports = function sayHelloA() {
-  console.log("hello a");
-  const sayHelloC = require(1");
-  sayHelloC();
-}
-
-/******/},
-/******/
-/******/})

@@ -7,6 +7,7 @@
   - [react 1.3](./react_1.3): `最早的 react 版本`
 - [webpack](./webpack)
   - [init commit 版本](./webpack/init_commit): `浏览器模块核心打包过程, 多模块代码被单文件管理，构建模块映射对象，模块内的代码require从映射对象上找。异步就是通过jsonp将模块连接到这个全局映射对象上`
+  - [with loader 版本](./webpack/with_loader): `支持通过 loader 链来构建非 js 模块，也支持 json,coffe 扩展自动识别 loader`
 - [requirejs](./requirejs)
   - [init commit 版本](./webpack/init_commit): `与webpack自动包装异步模块，同样的逻辑。异步jsonp加载包含模块代码回调函数的执行结果给上下文`
 - [TypeScript](./typescript): `官方案例实践`
