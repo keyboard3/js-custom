@@ -20,4 +20,4 @@ setInterval(function () {
     <ExampleApplication elapsed={new Date().getTime() - start} />,
     document.body
   );
-}, 50);
+}, 1000);
