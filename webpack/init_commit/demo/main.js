@@ -1,4 +1,3 @@
-console.log("===main");
 const sayHello = require("./c");
 sayHello();
 require.ensure(["./a"], function (require) {
