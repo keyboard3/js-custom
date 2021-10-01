@@ -87,8 +87,8 @@ module.exports = function(context, moduleName, options, callback) {
 	options.resolve.loaders.push({test: /\.coffee$/, loader: "coffee"});
 	options.resolve.loaders.push({test: /\.json$/, loader: "json"});
 	options.resolve.loaders.push({test: /\.jade$/, loader: "jade"});
-	// options.resolve.loaders.push({test: /\.css$/, loader: "style!css"});
-	// options.resolve.loaders.push({test: /\.less$/, loader: "style!less"});
+	options.resolve.loaders.push({test: /\.css$/, loader: "style!css"});
+	options.resolve.loaders.push({test: /\.less$/, loader: "style!less"});
 	buildDeps(context, moduleName, options, function(err, depTree) {
 		if(err) {
 			callback(err);

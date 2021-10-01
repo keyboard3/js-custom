@@ -19,9 +19,9 @@
 /******/0: function(module, exports, require) {
 
 /******/ /* WEBPACK FREE VAR INJECTION */ (function(console) {
-require(/* ../buildin/style-loader/index.js!../node_modules/css-loader/index.js!./page.css */2);
-const perosn = require(/* ./person.json */3);
-console.log("perosn", perosn);
+require(/* ./page.css */2);
+const person = require(/* ./person.json */3);
+console.log("person", person);
 /******/ /* WEBPACK FREE VAR INJECTION */ }(require(/* __webpack_console */1)))
 
 /******/},
