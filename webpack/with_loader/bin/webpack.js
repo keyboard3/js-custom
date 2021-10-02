@@ -55,6 +55,14 @@ var argv = require("optimist")
 	.describe("debug", "Prints debug info to output files")
 	.default("debug", false)
 
+	.boolean("watch")
+	.describe("watch", "Recompiles on changes (except loaders)")
+	.default("watch", false)
+
+	.boolean("progress")
+	.describe("progress", "Displays a progress while compiling")
+	.default("progress", false)
+
 	.demand(1)
 	.argv;
 
@@ -86,6 +94,10 @@ if(argv.debug) {
 	options.debug = true;
 }
 
+if(argv.watch) {
+	options.watch = true;
+}
+
 if(argv.filenames) {
 	options.includeFilenames = true;
 }
@@ -106,9 +118,13 @@ if(argv.alias) {
 	});
 }
 
-var webpack = require("./lib/webpack.js");
+var webpack = require("../lib/webpack.js");
 
-if(argv.single) {
+function c(str) {
+	return argv.colors ? str : "";
+}
+
+if(!output) {
 	webpack(input, options, function(err, source) {
 		if(err) {
 			console.error(err);
@@ -125,9 +141,48 @@ if(argv.single) {
 	if(!options.outputDirectory) options.outputDirectory = path.dirname(output);
 	if(!options.output) options.output = path.basename(output);
 	if(!options.outputPostfix) options.outputPostfix = "." + path.basename(output);
-	var outExists = fs.existsSync(options.outputDirectory);
-	if(!outExists)
-		fs.mkdirSync(options.outputDirectory);
+	if(argv.progress) {
+		if(!options.events) options.events = new (require("events").EventEmitter)();
+		var events = options.events;
+		
+		var sum = 0;
+		var finished = 0;
+		var chars = 0;
+		function print() {
+			var msg = "";
+			if(sum > 0) {
+				msg += "compiling... (" + c("\033[1m\033[33m");
+				msg += sprintf("%4s", finished+"") + "/" + sprintf("%4s", sum+"");
+				msg += " " + sprintf("%4s", Math.floor(finished*100/sum)+"%");
+				msg += c("\033[39m\033[22m") + ")";
+			}
+			for(var i = 0; i < chars; i++)
+				process.stderr.write("\b");
+			process.stderr.write(msg);
+			chars = msg.length;
+		}
+		events.on("task", function(name) {
+			sum++;
+			print();
+		});
+		events.on("task-end", function(name) {
+			finished++;
+			if(name) {
+				for(var i = 0; i < chars; i++)
+					process.stderr.write("\b \b");
+				process.stderr.write(name + " " + c("\033[1m\033[32m") + "done" + c("\033[39m\033[22m") + "\n");
+				chars = 0;
+			}
+			print();
+		});
+		events.on("bundle", function(name) {
+			sum = 0;
+			finished = 0;
+			for(var i = 0; i < chars; i++)
+				process.stderr.write("\b \b");
+			chars = 0;
+		});
+	}
 	webpack(input, options, function(err, stats) {
 		if(err) {
 			console.error(err);
@@ -136,18 +191,16 @@ if(argv.single) {
 		if(argv.json)
 			console.log(util.inspect(stats, false, 10, argv.colors));
 		else {
-			function c(str) {
-				return argv.colors ? str : "";
-			}
+			console.log("Hash: "+c("\033[1m") + stats.hash + c("\033[22m"));
 			console.log("Chunks: "+c("\033[1m") + stats.chunkCount + c("\033[22m"));
 			console.log("Modules: "+c("\033[1m") + stats.modulesCount + c("\033[22m"));
 			console.log("Modules including duplicates: "+c("\033[1m") + stats.modulesIncludingDuplicates + c("\033[22m"));
 			console.log("Modules pre chunk: "+c("\033[1m") + stats.modulesPerChunk + c("\033[22m"));
 			console.log("Modules first chunk: "+c("\033[1m") + stats.modulesFirstChunk + c("\033[22m"));
 			if(stats.fileSizes)
-				for(var file in stats.fileSizes) {
+				Object.keys(stats.fileSizes).reverse().forEach(function(file) {
 					console.log(c("\033[1m") + sprintf("%" + (5 + options.output.length) + "s", file) + c("\033[22m")+": "+c("\033[1m") + sprintf("%8d", stats.fileSizes[file]) + c("\033[22m") + " characters");
-				};
+				});
 			var cwd = process.cwd();
 			var cwdParent = path.dirname(cwd);
 			var buildins = path.join(__dirname, "..");
@@ -158,6 +211,9 @@ if(argv.single) {
 			cwdParent = new RegExp("^" + cwdParent + "|(!)" + cwdParent, "g");
 			buildins = buildins.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
 			buildins = new RegExp("^" + buildins + "|(!)" + buildins, "g");
+			var node_modulesRegExpA = /\/node_modules\//g;
+			var node_modulesRegExpB = /\\node_modules\\/g;
+			var index_jsRegExp = /[\\\/]index.js!/g;
 			function compressFilename(filename) {
 				if(!filename)
 					return filename;
@@ -166,15 +222,17 @@ if(argv.single) {
 				filename = filename.replace(cwd, "!.");
 				if(!buildinsAsModule)
 					filename = filename.replace(buildins, "!(webpack)");
-				filename = filename.replace(cwdParent, "!..");
-				return filename.replace(/^!/, "");
+				filename = filename.replace(node_modulesRegExpA, "/~/");
+				filename = filename.replace(node_modulesRegExpB, "\\~\\");
+				filename = filename.replace(index_jsRegExp, "!");
+				return filename.replace(/^!|!$/, "");
 			}
 			if(stats.fileModules) {
 				console.log();
 				console.log(" <id>    <size>  <filename>");
 				if(argv.verbose)
 					console.log("       <reason> from <filename>");
-				for(var file in stats.fileModules) {
+				Object.keys(stats.fileModules).reverse().forEach(function(file) {
 					console.log(c("\033[1m\033[32m") + file + c("\033[39m\033[22m"));
 					var modules = stats.fileModules[file];
 					if(argv["by-size"])
@@ -207,7 +265,7 @@ if(argv.single) {
 							});
 						}
 					});
-				}
+				});
 			}
 			if(stats.warnings) {
 				stats.warnings.forEach(function(warning) {
@@ -221,4 +279,4 @@ if(argv.single) {
 			}
 		}
 	});
-}""
+}

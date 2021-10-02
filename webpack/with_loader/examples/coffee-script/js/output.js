@@ -19,9 +19,7 @@
 /******/0: function(module, exports, require) {
 
 /******/ /* WEBPACK FREE VAR INJECTION */ (function(console) {
-require(/* ./page.css */2);
-const person = require(/* ./person.json */3);
-console.log("person", person);
+console.log(require(/* ./cup1.coffee */3));
 /******/ /* WEBPACK FREE VAR INJECTION */ }(require(/* __webpack_console */1)))
 
 /******/},
@@ -47,26 +45,30 @@ console.timeEnd = function() {
 /******/
 /******/2: function(module, exports, require) {
 
+/******/ /* WEBPACK FREE VAR INJECTION */ (function(console) {
+(function() {
+  console.log("yeah coffee-script");
 
-	var styleElement = document.createElement("style");
-	styleElement.type = "text/css";
-	if (styleElement.styleSheet) {
-		styleElement.styleSheet.cssText = 
-	"body {\n  background-color: brown;\n}\n";;
-	} else {
-		styleElement.appendChild(document.createTextNode(cssCode));
-	}
-	document.getElementsByTagName("head")[0].appendChild(styleElement);
-	
+  module.exports = 42;
+
+}).call(this);
+
+/******/ /* WEBPACK FREE VAR INJECTION */ }(require(/* __webpack_console */1)))
 
 /******/},
 /******/
 /******/3: function(module, exports, require) {
 
-module.exports = {
-	"name": "keyboard3",
-	"age": 100
-}
+(function() {
+  module.exports = {
+    cool: "stuff",
+    answer: 42,
+    external: require(/* ./cup2.coffee */2),
+    again: require(/* ./cup2.coffee */2)
+  };
+
+}).call(this);
+
 
 /******/},
 /******/

@@ -154,7 +154,7 @@ function loadAsFile(filename, options, type, callback) {
 				callback(err || "Isn't a file");
 				return;
 			}
-			fs.stat(result = filename + extensions[pos], tryCb);
+			fs.stat(result = "/" + filename + extensions[pos], tryCb);
 			return;
 		}
 		if(!result) throw new Error("no result");
