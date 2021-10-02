@@ -190,7 +190,7 @@ chunk    {1} 1.output.js 457 {0}
 
 ```
 Hash: 8dbb9bd6762ca5c8ad463093dbb06f91
-Time: 59ms
+Time: 55ms
       Asset  Size  Chunks  Chunk Names
   output.js   831       0  main       
 1.output.js   531       1             

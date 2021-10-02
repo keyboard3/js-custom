@@ -104,7 +104,7 @@ exports.add = function() {
 
 ```
 Hash: 994d4faf67fcae9300dabf091df49b37
-Time: 21ms
+Time: 22ms
     Asset  Size  Chunks  Chunk Names
 output.js  1559       0  main       
 chunk    {0} output.js (main) 318
@@ -119,7 +119,7 @@ chunk    {0} output.js (main) 318
 
 ```
 Hash: 994d4faf67fcae9300dabf091df49b37
-Time: 40ms
+Time: 39ms
     Asset  Size  Chunks  Chunk Names
 output.js   460       0  main       
 chunk    {0} output.js (main) 318

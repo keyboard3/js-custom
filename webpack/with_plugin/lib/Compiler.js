@@ -129,7 +129,6 @@ Compiler.prototype.run = function(callback) {
 	var startTime = new Date().getTime();
 	this.applyPluginsAsync("run", this, function(err) {
 		if(err) return callback(err);
-
 		this.compile(function(err, compilation) {
 			if(err) return callback(err);
 

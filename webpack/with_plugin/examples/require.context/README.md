@@ -136,7 +136,7 @@ module.exports = function() {
 
 ```
 Hash: 41cc7ecd361fcef6be27120d66ca868b
-Time: 22ms
+Time: 23ms
     Asset  Size  Chunks  Chunk Names
 output.js  2458       0  main       
 chunk    {0} output.js (main) 603

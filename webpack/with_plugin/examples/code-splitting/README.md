@@ -138,7 +138,7 @@ webpackJsonp([1],{3:function(){},4:function(){}});
 
 ```
 Hash: 3639030b45b9ce105eabf61803c87855
-Time: 24ms
+Time: 25ms
       Asset  Size  Chunks  Chunk Names
   output.js  2529       0  main       
 1.output.js   306       1             
@@ -160,7 +160,7 @@ chunk    {1} 1.output.js 22 {0}
 
 ```
 Hash: 3639030b45b9ce105eabf61803c87855
-Time: 53ms
+Time: 50ms
       Asset  Size  Chunks  Chunk Names
   output.js   744       0  main       
 1.output.js    50       1             

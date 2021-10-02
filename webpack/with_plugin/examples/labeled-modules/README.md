@@ -120,7 +120,7 @@ chunk    {0} output.js (main) 288
 
 ```
 Hash: 99daf949cbcfe0ae3c9a2e055225e847
-Time: 41ms
+Time: 40ms
     Asset  Size  Chunks  Chunk Names
 output.js   468       0  main       
 chunk    {0} output.js (main) 288

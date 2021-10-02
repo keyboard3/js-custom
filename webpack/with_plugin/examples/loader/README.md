@@ -112,7 +112,7 @@ Prints in node.js (`enhanced-require example.js`) and in browser:
 
 ```
 Hash: 6f1e7831e89063811f1bfef697103134
-Time: 23ms
+Time: 24ms
     Asset  Size  Chunks  Chunk Names
 output.js  1614       0  main       
 chunk    {0} output.js (main) 273

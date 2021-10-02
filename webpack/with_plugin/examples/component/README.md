@@ -224,13 +224,13 @@ module.exports = {
 ## Uncompressed
 
 ```
-Hash: 9bb920dcdf523e4a18b7e5f09aaaadf2
-Time: 42ms
+Hash: f38d99b911b53231c8917a9a92d6e375
+Time: 43ms
     Asset  Size  Chunks  Chunk Names
 output.js  4717       0  main       
-chunk    {0} output.js (main) 1570
+chunk    {0} output.js (main) 1550
     [0] ./example.js 111 [built] {0}
-    [1] ./component/webpack-a-component (component) 280 [built] {0}
+    [1] ./component/webpack-a-component (component) 272 [built] {0}
         cjs require a-component [0] ./example.js 1:12-34
         cjs require a-component [4] ./component/webpack-c-component/main.js 1:23-45
     [2] ./component/webpack-a-component/index.js 21 [built] {0}
@@ -244,11 +244,11 @@ chunk    {0} output.js (main) 1570
     [6] ./my-component/b-component/main.js 21 [built] {0}
         cjs require ./main.js [5] ./my-component/b-component (component) 1:17-37
     [7] (webpack)/~/component-webpack-plugin/~/css-loader!./component/webpack-a-component/style.css 113 [built] {0}
-        cjs require !!(webpack)/node_modules/component-webpack-plugin/node_modules/css-loader/index.js!./component/webpack-a-component/style.css [9] (webpack)/~/style-loader!(webpack)/~/component-webpack-plugin/~/css-loader!./component/webpack-a-component/style.css 4:2-254
+        cjs require !!(webpack)/node_modules/component-webpack-plugin/node_modules/css-loader/index.js!./component/webpack-a-component/style.css [9] (webpack)/~/style-loader!(webpack)/~/component-webpack-plugin/~/css-loader!./component/webpack-a-component/style.css 4:2-246
     [8] (webpack)/~/style-loader/addStyle.js 458 [built] {0}
-        cjs require !(webpack)/node_modules/style-loader/addStyle.js [9] (webpack)/~/style-loader!(webpack)/~/component-webpack-plugin/~/css-loader!./component/webpack-a-component/style.css 2:0-104
-    [9] (webpack)/~/style-loader!(webpack)/~/component-webpack-plugin/~/css-loader!./component/webpack-a-component/style.css 444 [built] {0}
-        cjs require !(webpack)/node_modules/style-loader/index.js!(webpack)/node_modules/component-webpack-plugin/node_modules/css-loader/index.js!./style.css [1] ./component/webpack-a-component (component) 1:0-239
+        cjs require !(webpack)/node_modules/style-loader/addStyle.js [9] (webpack)/~/style-loader!(webpack)/~/component-webpack-plugin/~/css-loader!./component/webpack-a-component/style.css 2:0-100
+    [9] (webpack)/~/style-loader!(webpack)/~/component-webpack-plugin/~/css-loader!./component/webpack-a-component/style.css 432 [built] {0}
+        cjs require !(webpack)/node_modules/style-loader/index.js!(webpack)/node_modules/component-webpack-plugin/node_modules/css-loader/index.js!./style.css [1] ./component/webpack-a-component (component) 1:0-231
 
 ERROR in (webpack)/~/component-webpack-plugin/~/css-loader!./component/webpack-a-component/style.css
 Module not found: Error: Cannot resolve module url-loader in ./component/webpack-a-component
@@ -258,13 +258,13 @@ Module not found: Error: Cannot resolve module url-loader in ./component/webpack
 ## Minimized (uglify-js, no zip)
 
 ```
-Hash: 27414093263fee9bcc5616befdeaa69e
-Time: 73ms
+Hash: 704f9db5091e7ea5ab4e3cf4ed35a464
+Time: 71ms
     Asset  Size  Chunks  Chunk Names
 output.js   919       0  main       
-chunk    {0} output.js (main) 1549
+chunk    {0} output.js (main) 1529
     [0] ./example.js 111 [built] {0}
-    [1] ./component/webpack-a-component (component) 280 [built] {0}
+    [1] ./component/webpack-a-component (component) 272 [built] {0}
         cjs require a-component [0] ./example.js 1:12-34
         cjs require a-component [4] ./component/webpack-c-component/main.js 1:23-45
     [2] ./component/webpack-a-component/index.js 21 [built] {0}
@@ -278,11 +278,11 @@ chunk    {0} output.js (main) 1549
     [6] ./my-component/b-component/main.js 21 [built] {0}
         cjs require ./main.js [5] ./my-component/b-component (component) 1:17-37
     [7] (webpack)/~/component-webpack-plugin/~/css-loader!./component/webpack-a-component/style.css 92 [built] {0}
-        cjs require !!(webpack)/node_modules/component-webpack-plugin/node_modules/css-loader/index.js!./component/webpack-a-component/style.css [9] (webpack)/~/style-loader!(webpack)/~/component-webpack-plugin/~/css-loader!./component/webpack-a-component/style.css 4:2-254
+        cjs require !!(webpack)/node_modules/component-webpack-plugin/node_modules/css-loader/index.js!./component/webpack-a-component/style.css [9] (webpack)/~/style-loader!(webpack)/~/component-webpack-plugin/~/css-loader!./component/webpack-a-component/style.css 4:2-246
     [8] (webpack)/~/style-loader/addStyle.js 458 [built] {0}
-        cjs require !(webpack)/node_modules/style-loader/addStyle.js [9] (webpack)/~/style-loader!(webpack)/~/component-webpack-plugin/~/css-loader!./component/webpack-a-component/style.css 2:0-104
-    [9] (webpack)/~/style-loader!(webpack)/~/component-webpack-plugin/~/css-loader!./component/webpack-a-component/style.css 444 [built] {0}
-        cjs require !(webpack)/node_modules/style-loader/index.js!(webpack)/node_modules/component-webpack-plugin/node_modules/css-loader/index.js!./style.css [1] ./component/webpack-a-component (component) 1:0-239
+        cjs require !(webpack)/node_modules/style-loader/addStyle.js [9] (webpack)/~/style-loader!(webpack)/~/component-webpack-plugin/~/css-loader!./component/webpack-a-component/style.css 2:0-100
+    [9] (webpack)/~/style-loader!(webpack)/~/component-webpack-plugin/~/css-loader!./component/webpack-a-component/style.css 432 [built] {0}
+        cjs require !(webpack)/node_modules/style-loader/index.js!(webpack)/node_modules/component-webpack-plugin/node_modules/css-loader/index.js!./style.css [1] ./component/webpack-a-component (component) 1:0-231
 
 ERROR in (webpack)/~/component-webpack-plugin/~/css-loader!./component/webpack-a-component/style.css
 Module not found: Error: Cannot resolve module url-loader in ./component/webpack-a-component

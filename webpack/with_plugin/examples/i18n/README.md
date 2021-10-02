@@ -76,7 +76,7 @@ module.exports = {
 
 ```
 Hash: 6dd5f9550269e46e82b8dd537732bdfa
-Time: 18ms
+Time: 17ms
     Asset  Size  Chunks  Chunk Names
 output.js   989       0  main       
 chunk    {0} output.js (main) 64
@@ -90,7 +90,7 @@ Missing localization: Missing Text
 
 ```
 Hash: 6dd5f9550269e46e82b8dd537732bdfa
-Time: 33ms
+Time: 30ms
     Asset  Size  Chunks  Chunk Names
 output.js   308       0  main       
 chunk    {0} output.js (main) 64
