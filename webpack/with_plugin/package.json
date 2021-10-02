@@ -1,0 +1,54 @@
+{
+	"name": "webpack",
+	"version": "0.9.3",
+	"author": "Tobias Koppers @sokra",
+	"description": "Packs CommonJs/AMD/Labeled Modules for the browser. Allows to split your codebase into multiple bundles, which can be loaded on demand. Support loaders to preprocess files, i.e. json, jade, coffee, css, less, ... and your custom stuff.",
+	"dependencies": {
+		"esprima": "1.0.x",
+		"mkdirp": "0.3.x",
+		"optimist": "0.3.x",
+		"uglify-js": "2.2.x",
+		"async": "0.2.x",
+		"enhanced-resolve": "0.5.x",
+		"clone": "0.1.x",
+		"webpack-core": "0.1.x",
+		"node-libs-browser": "0.1.x",
+		"tapable": "0.1.x"
+	},
+	"licenses": [
+		{
+			"type": "MIT",
+			"url": "http://www.opensource.org/licenses/mit-license.php"
+		}
+	],
+	"devDependencies": {
+		"mocha": "1.8.x",
+		"should": "1.1.x",
+		"vm-browserify": "0.0.x",
+		"express": "3.0.x",
+		"webpack-dev-middleware": "0.9.x",
+		"worker-loader": "0.5.x",
+		"raw-loader": "0.5.x",
+		"json-loader": "0.5.x",
+		"jade-loader": "0.5.x",
+		"coffee-loader": "0.5.x",
+		"css-loader": "0.5.x",
+		"less-loader": "0.5.x",
+		"style-loader": "0.5.x",
+		"script-loader": "0.5.x",
+		"bundle-loader": "0.5.x",
+		"file-loader": "0.5.x",
+		"val-loader": "0.5.x",
+		"i18n-webpack-plugin": "0.1.x",
+		"component-webpack-plugin": "0.1.x"
+	},
+	"engines": {
+		"node":  ">=0.6"
+	},
+	"homepage": "http://github.com/webpack/webpack",
+	"main": "lib/webpack.js",
+	"bin": "./bin/webpack.js",
+	"scripts": {
+		"test": "mocha --reporter spec"
+	}
+}
