@@ -39,7 +39,7 @@ module.exports = function(module) {
 		result.unshift(
 			remSource.substr(0, repl.from),
 			repl.value,
-			remSource.substr(repl.to)
+			remSource.substr(repl.to+1)
 		);
 	});
 	return result.join("");

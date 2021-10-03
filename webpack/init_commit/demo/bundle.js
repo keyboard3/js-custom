@@ -37,15 +37,14 @@
 /******/({a:".bundle.js",b:"webpackJsonp",c:"",
 /******/0: function(module, exports, require) {
 
-console.log("===main");
-const sayHello = require(1");
+const sayHello = require(3);
 sayHello();
-require.ensure(0], function (require) {
-  var sayHello = require(2");
+require.ensure(0, function (require) {
+  var sayHello = require(1);
   sayHello();
 });
-require.ensure(2], function (require) {
-  var sayHello = require(3");
+require.ensure(2, function (require) {
+  var sayHello = require(2);
   sayHello();
 });
 
@@ -53,20 +52,19 @@ require.ensure(2], function (require) {
 /******/
 /******/1: function(module, exports, require) {
 
-console.log("===c");
-const a = require(2");
-module.exports = function sayHelloC() {
-  console.log("hello c", a);
+module.exports = function sayHelloA() {
+  console.log("hello a");
+  const sayHelloC = require(3);
+  sayHelloC();
 }
 
 /******/},
 /******/
-/******/2: function(module, exports, require) {
+/******/3: function(module, exports, require) {
 
-module.exports = function sayHelloA() {
-  console.log("hello a");
-  const sayHelloC = require(1");
-  sayHelloC();
+const a = require(1);
+module.exports = function sayHelloC() {
+  console.log("hello c", a);
 }
 
 /******/},
