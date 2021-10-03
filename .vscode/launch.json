@@ -30,7 +30,7 @@
       "request": "launch",
       "name": "webpack-plugin-loader",
       "skipFiles": ["<node_internals>/**"],
-      "cwd": "${workspaceFolder}/webpack/with_plugin/examples/component",
+      "cwd": "${workspaceFolder}/webpack/with_plugin/examples/i18n",
       "program": "./build.js"
     }
   ]
