@@ -1,7 +1,3 @@
-[![webpack](http://webpack.github.com/assets/logo.png)](http://webpack.github.com)
-
-[documentation](https://github.com/webpack/docs/wiki)
-
 # Introduction
 
 webpack 是一个模块打包器。主要目的是捆绑 javascript 文件以在浏览器中使用。

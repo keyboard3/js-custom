@@ -1,0 +1,37 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "pwa-node",
+      "request": "launch",
+      "name": "webpack-init-demo",
+      "skipFiles": ["<node_internals>/**"],
+      "cwd": "${workspaceFolder}/webpack/init_commit",
+      "program": "./webpack.js",
+      "args": [
+        "./demo/main.js",
+        "./demo/bundle.js"
+      ],
+      "port": 5858
+    },
+    {
+      "type": "pwa-node",
+      "request": "launch",
+      "name": "webpack-loader-demo",
+      "skipFiles": ["<node_internals>/**"],
+      "cwd": "${workspaceFolder}/webpack/with_loader/examples/code-splitted-require.context",
+      "program": "./build.js"
+    },
+    {
+      "type": "pwa-node",
+      "request": "launch",
+      "name": "webpack-plugin-loader",
+      "skipFiles": ["<node_internals>/**"],
+      "cwd": "${workspaceFolder}/webpack/with_plugin/examples/component",
+      "program": "./build.js"
+    }
+  ]
+}

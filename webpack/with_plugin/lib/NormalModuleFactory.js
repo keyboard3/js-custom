@@ -47,6 +47,7 @@ NormalModuleFactory.prototype.create = function(context, dependency, callback) {
 		var elements = request.replace(/^!+/, "").replace(/!!+/g, "!").split("!");
 		var resource = elements.pop();
 
+		/** 两个并行的方法，第一个解析出loaders，第二个解析出模块的真实路径 */
 		async.parallel([
 			function(callback) {
 				this.resolveRequestArray(context, elements, this.resolvers.loader, callback);

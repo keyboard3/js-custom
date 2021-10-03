@@ -1,5 +1,4 @@
 # js-custom
-- [简易栈机虚拟机实现](./virtual-stack.ts)
 - [react](./react): `preact 的 breack change 实现的解读`
   - [preact 1 ](./react/preact_1): `最早单文件的优雅实现`
   - [preact 4](./react/preact_4): `代码重构拆分及性能优化`
@@ -44,14 +43,9 @@
   - [class 示例及说明](./babel/es6-features/class.js)
   - [对象字面量示例及说明](./babel/es6-features/objectLiterals.js)
   - [尾调用说明](./babel/es6-features/tailCall.js): babel 示例中还是依赖了引擎的实现，但是目前就 safari(JavascriptCore)支持，实际上鸡肋。感觉可以通过识别无局部变量声明，且最后语句调用自身就可以认为是尾调用则接管掉函数，由中间的优化函数来触发，具体可见"es6 标准入门"中 [tco 实现](../es6/tail-call-one.mjs)
-- [promise](./promise.js)
-  - 相关文档
-    - [使用 Promise](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Guide/Using_promises)
-    - [Promise](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Promise)
-    - [JS promise 基础](https://medium.com/@ramsunvtech/promises-of-promise-part-1-53f769245a53)
-    - [JS Promise 实现库](https://medium.com/@ramsunvtech/js-promise-part-2-q-js-when-js-and-rsvp-js-af596232525c)
-    - [Promise/A+标准](https://promisesaplus.com/#notes)
-  - 跑 Promise/A+测试用例 872 项 `npm run promise`
+- [其他](./other)
+  - [promise](./other/promise.js)
+  - [简易栈机虚拟机实现](./other/virtual-stack.ts)
 - es6 标准入门示例
   - [尾调用优化实现](./es6/tail-call-one.mjs)
   - [简易模板编译实现](./es6/template-compile.mjs)

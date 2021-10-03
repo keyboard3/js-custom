@@ -3,7 +3,7 @@
  * @param {*} obj 克隆对象
  * @param {*} cacheMap 循环引用的缓存Map
  */
-function deepClone(obj, cacheMap) {
+function deepClone(obj, cacheMap = new Map()) {
   if (typeof obj != "object") return obj;
   const newObj = Array.isArray(obj) ? [] : {};
   cacheMap.set(obj, newObj);
@@ -27,5 +27,5 @@ const wang = {
 for (let item of wang.children) {
   item.parent = wang;
 }
-const wang2 = deepClone(wang, new Map());
+const wang2 = deepClone(wang);
 console.log(wang == wang2, wang2);
