@@ -1,6 +1,6 @@
 {
   "name": "with_loader",
-  "version": "1.0.0",
+  "version": "0.3.13",
   "main": "index.js",
   "license": "MIT",
   "dependencies": {

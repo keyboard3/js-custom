@@ -20,9 +20,19 @@ function NormalModuleFactory(context, resolvers, parser, options) {
 module.exports = NormalModuleFactory;
 
 NormalModuleFactory.prototype = Object.create(Tapable.prototype);
+/**
+ * SingleEntryPlugin 接收到 make 消息之后，调用 compilation.addEntry
+ * @param {*} context 
+ * @param {*} dependency 
+ * @param {*} callback 
+ */
 NormalModuleFactory.prototype.create = function(context, dependency, callback) {
 	context = context || this.context;
 	var request = dependency.request;
+	/**
+	 * 每解析一个模块，就发送 before-resolve 这个模块的 request
+	 * 插件解析模块的语法树，解析得到依赖其他模块的结果
+	 */
 	this.applyPluginsAsyncWaterfall("before-resolve", {
 		context: context,
 		request: request
@@ -75,6 +85,7 @@ NormalModuleFactory.prototype.create = function(context, dependency, callback) {
 				}.bind(this));
 			}
 			function onDoneResolving() {
+				/** loader 准备好，准备开始解析该模块 */
 				this.applyPluginsAsyncWaterfall("after-resolve", {
 					request: loaders.concat([resource]).join("!"),
 					userRequest: userRequest,
@@ -84,7 +95,7 @@ NormalModuleFactory.prototype.create = function(context, dependency, callback) {
 					parser: this.parser
 				},  function(err, result) {
 					if(err) return callback(err);
-
+					/** 解析模块完毕之后将模块的结果丢出去 */
 					return callback(null,
 						new NormalModule(
 							result.request,

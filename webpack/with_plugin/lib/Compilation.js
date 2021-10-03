@@ -42,6 +42,11 @@ function Compilation(compiler) {
 module.exports = Compilation;
 
 Compilation.prototype = Object.create(Tapable.prototype);
+/**
+ * 向 compilation 中添加到 _modules 和 modules 中
+ * @param {*} module 
+ * @returns 
+ */
 Compilation.prototype.addModule = function(module) {
 	var identifier = module.identifier();
 	if(this._modules[identifier]) return false;
@@ -76,9 +81,14 @@ Compilation.prototype.getModule = function(module) {
 	var identifier = module.identifier();
 	return this._modules[identifier];
 };
-
+/**
+ * 从内存缓存文件系统中读取出模块内容，并解析构建出该模块依赖对象
+ * @param {*} module 
+ * @param {*} callback 
+ */
 Compilation.prototype.buildModule = function(module, callback) {
 	this.applyPlugins("build-module", module);
+	/** 调用的是 NormalModule.build, 会通过 this.parser.parse 来解析模块源码 */
 	module.build(this.options, this, this.resolvers.normal, this.inputFileSystem, function(err) {
 		module.errors.forEach(function(err) {
 			this.errors.push(err);
@@ -94,7 +104,12 @@ Compilation.prototype.buildModule = function(module, callback) {
 		return callback();
 	}.bind(this));
 };
-
+/**
+ * 递归处理模块的依赖，添加 Module
+ * @param {*}} module 
+ * @param {*} callback 
+ * @returns 
+ */
 Compilation.prototype.processModuleDependencies = function(module, callback) {
 	var errorAndCallback = this.bail ? function errorAndCallback(err) {
 		callback(err);
@@ -202,7 +217,7 @@ Compilation.prototype.processModuleDependencies = function(module, callback) {
 		return callback();
 	});
 };
-
+/** SingleEntryPlugin 接收到 make 消息之后会调用它 */
 Compilation.prototype.addEntry = function process(context, entry, name, callback) {
 	var errorAndCallback = this.bail ? function errorAndCallback(err) {
 		callback(err);
@@ -218,7 +233,7 @@ Compilation.prototype.addEntry = function process(context, entry, name, callback
 	var moduleFactory = this.dependencyFactories.get(entry.Class);
 	if(!moduleFactory)
 		return callback(new Error("No dependency factory availible for this entry dependency type: " + entry.Class.name));
-
+	/** moduleFactory.create 只是准备好了模块的 loader，拿到模块对象之后才开始真正的 parse */
 	moduleFactory.create(context, entry, function(err, module) {
 		if(err) return errorAndCallback(new EntryModuleNotFoundError(err));
 
@@ -237,6 +252,7 @@ Compilation.prototype.addEntry = function process(context, entry, name, callback
 		if(result instanceof Module) {
 			entryReady.call(this);
 		} else {
+			/** 从这开始将 module 内容丢给 parser 解析。构建出一个模块对象结果来 */
 			this.buildModule(module, function(err) {
 				if(err) return errorAndCallback(err);
 
@@ -247,7 +263,9 @@ Compilation.prototype.addEntry = function process(context, entry, name, callback
 		function entryReady() {
 			this.processModuleDependencies(module, function(err) {
 				if(err) return callback(err);
-
+				/**
+				 * 递归处理完所有的依赖模块之后，开始创建 chunk
+				 */
 				var chunk = this.addChunk(name);
 				chunk.id = 0;
 				chunk.entry = true;
@@ -259,7 +277,7 @@ Compilation.prototype.addEntry = function process(context, entry, name, callback
 		}
 	}.bind(this));
 };
-
+/** 构建完 chunk 之后封装, 主要是 chunk 的一些列优化 */
 Compilation.prototype.seal = function seal(callback) {
 	this.applyPlugins("seal");
 	this.applyPlugins("optimize");
@@ -298,8 +316,15 @@ Compilation.prototype.addChunk = function addChunk(name) {
 	}
 	return chunk;
 };
-
+/**
+ * 递归处理 chunk 依赖的模块
+ * @param {*} block 
+ * @param {*} chunk 
+ */
 Compilation.prototype.processDependenciesBlockForChunk = function processDependenciesBlockForChunk(block, chunk) {
+	/**
+	 * 类似于0.3版本的 async 字段，一个 block 一个独立 chunk
+	 */
 	block.blocks.forEach(function(b) {
 		var c;
 		if(!b.chunk) {

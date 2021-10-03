@@ -55,6 +55,7 @@ NormalModule.prototype.build = function build(options, compilation, resolver, fs
 	return this.doBuild(options, compilation, resolver, fs, function(err) {
 		if(err) return callback(err);
 		try {
+			/** 用 esprima 来解析出这个模块的语法树及其相关依赖 */
 			this.parser.parse(this._source.source(), {
 				current: this,
 				module: this

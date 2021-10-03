@@ -269,6 +269,19 @@ Compiler.prototype.compile = function(callback) {
 
 	var compilation = this.newCompilation(params);
 
+	/**
+	 * make 消息丢给 SingleEntryPlugin
+	 * SingleEntryPlugin 调用 compilation.addEntry
+	 * addEntry 就开始递归: 
+	 * 		moduleFactory.create 准备 loader 的 module 配置对象
+	 * 		buildModule 开始解析语法树构建模块及其依赖
+	 * 		然后 processModuleDependencies 处理模块依赖，重复上面的步骤
+	 * 处理完所有 Module 之后，开始创建入口的 chunk, 将入口 module 加入
+	 * processDependenciesBlockForChunk 从入口 module 开始
+	 * 		同步依赖递归添加到 chunk 上
+	 * 		异步的 block 则创建新 chunk 然后递归这个过程
+	 * 所有的 chunk 创建完毕之后，交给最后的封装过程 seal 去调用优化 chunk 的相关插件
+	 */
 	this.applyPluginsAsync("make", compilation, function(err) {
 		if(err) return callback(err);
 

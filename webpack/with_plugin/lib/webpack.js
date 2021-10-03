@@ -13,7 +13,11 @@ function webpack(options, callback) {
 
 	var compiler = new Compiler();
 	compiler.options = options;
-	// 处理参数，例如为不同的 target 注册插件
+	/**
+	 * 处理参数，例如为不同的 target 注册插件
+	 * after-plugins: 所有非解析模块的 plugin 注册完成
+	 * after-resolvers: 解析模块的插件注册完成。 NodeSourcePlugin 监听该消息
+	 */
 	compiler.options = new WebpackOptionsApply().process(options, compiler);
 	// 注册 NodeEnvironmentPlugin 插件，触发 before-run 时执行
 	new NodeEnvironmentPlugin(options.separate).apply(compiler);
