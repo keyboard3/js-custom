@@ -28,6 +28,18 @@
 
 示例演示 loader 的使用。
 
+./loader!./file: 
+ - ./loader
+    Make -> complication.addEntry -> ModuleFactory.create -> resolveRequestArray ->  compiler.loader (enhanced-resolve/lib/Resolver) -> Resolver.resolve -> doResolve -> FileAppendPlugin: resolver.plugin “file” -> addr = request.path+request.request 得到真实的文件地址
+ - ./file
+    Make -> complication.addEntry -> ModuleFactory.create -> resolvers.normal.resolve (enhanced-resolve/lib/Resolver) -> Resolver.resolve -> doResolve -> FileAppendPlugin: resolver.plugin “file” -> addr = request.path+request.request 得到真实的文件地址
+- NormalModule.build
+    - NormalModuleMixin.doBuild
+    - loadPitch: 将 loader 解析 require 成 func
+    - nextloader() -> runSyncOrAsync
+        - content = func(prevContent)
+        - nextLoader(nextFun, content)
+
 ## coffee-script
 
 示例演示用 coffee-script 脚本编写的代码。
