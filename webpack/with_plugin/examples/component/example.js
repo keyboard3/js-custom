@@ -1,8 +1,6 @@
-/**
- * require("a-component") => a-component/component.json
- * 
+/** 
  * ComponentPlugin
- *  compiler.resolvers.normal.plugin "module": resolve 模块时，找到实际的模块地址
+ *  compiler.resolvers.normal.plugin "module": resolve 模块时，找到实际的模块地址 a-component/component.json
  *  compiler.plugin "normal-module-factory": 监听在 compile 时准备 newCompilationParams()
  *    在 "after-resolve" 是确定了 module 配置决定解析之前修改配置的一次机会
  *    对比 "module" 时记录下的 componentFile 和 data 匹配

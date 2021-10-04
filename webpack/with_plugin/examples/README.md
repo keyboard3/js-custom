@@ -40,10 +40,37 @@
 
 演示 chunk 与命名 chunk 合并的示例
 
+## component
+
+演示了如何导入自定义组件的示例
+
+ComponentPlugin
+*  compiler.resolvers.normal.plugin "module": resolve 模块时，找到实际的模块地址 a-component/component.json
+*  compiler.plugin "normal-module-factory": 监听在 compile 时准备 newCompilationParams()
+    *  在 "after-resolve" 是确定了 module 配置决定解析之前修改配置的一次机会
+    *  对比 "module" 时记录下的 componentFile 和 data 匹配
+    *  给 data 添加 loader: component-loader.js?{\"styles\":\"!/style-loader/index.js!/css-loader/index.js![file]\"}
+* component-loader.js
+    *  转义component.json内容成
+    *  require(\"!..style-loader/index.js!/../css-loader/index.js!./style.css\");
+    *  module.exports = require(\"./index.js\");
+
 ## labeled-modules
 
 演示标记模块的示例
 
+LabelModulePlugin
+* 因为 compiler,complication,parser 都有自己的消息通道，所以都继承自 taxable
+* compiler.plugin "compilation"
+    * 解析依赖时 LabeledModuleDependency 指定 normalModuleFactory (内置的模块解析方法)
+    * 代码替换 LabeledModuleDependency 导入语法替换
+    * 代码替换 LabeledExportsDependency 导出语法替换
+    * 向 parser 丢 LabeledModuleDependencyParserPlugin 插件
+* LabeledModuleDependencyParserPlugin
+    * 监听 label require，label exports 语法 插入依赖实例
+* Compilation.processModuleDependencies
+    * 回去解析 dependencies 通过 dependencyFactories 获得  dependantModule 创建 module
+    * 递归 processModuleDependencies 过程
 ## mixed
 
 演示混合 CommonJs、A​​MD 和标记模块的示例
@@ -56,6 +83,15 @@
 
 演示本地化的示例。
 
+I18nPlugin
+*  compiler.plugin "compilation": 常见一个新的 complication
+*    给 complication.dependencyTemplates 添加 ConstDependency 类的模板处理方法，用来替换源码的
+*  compiler.parser.plugin "call __": 监听如果调用 __()方法
+*    "Hello World" 作为参数从 localization json 中获得映射值
+*    添加 ConstDependency 到 module.dependencies 中。目的是将这个调用表达式替换成 i18n 映射之后的字符串
+*  在 Compilation.createChunkAssets 构建产物 chunk js 文件内容
+*  JSONMainTemplate.render -> FunctionModuleTemplate.render -> NormalModule.source
+*    会调用 module.dependencies 并使用 complication.dependencyTemplates 中的模板来替换源码
 # Requests
 
 如果您认为缺少示例，请将其报告为问题。 :)
