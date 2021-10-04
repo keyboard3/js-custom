@@ -24,6 +24,22 @@
 
 示例演示了 AMD 代码拆分环境中的上下文。
 
+- webpack() 启动 调用 new WebpackOptionsApply().process(options, compiler)
+- compiler.apply(...new AMDPlugin(options.amd))
+    - 注册 AMDRequireContextDependency-factory: contextModuleFactory
+    - 注册 AMDRequireItemDependency-factory: normalModuleFactory
+- new AMDRequireDependenciesBlockParserPlugin().apply(compiler.parser);
+    - 监听语句 "call require" 调用, 遇到 2 个参数即 require(["../require.context/templates/"+templateName], function(tmpl) {..}
+    - 执行参数 evaluateExpression(二元表达式+)，得到结果 "../require.context/templates/"
+    - 创建异步 block AMDRequireDependenciesBlock 丢到当前主模块中
+    - 创建依赖 AMDRequireContextDependency 丢入上面的异步 block 中
+- Complication 解析完主模块(NormalModule), 然后解析 processModuleDependencies
+    - addDependenciesBlock 会将异步 block 中的依赖都展开一起解析
+    - dependencyFactories 读取到了 contextModuleFactory 获得了 contextModule 配置
+    - 执行 module.build (contextModule), 执行 resolveDependencies
+    - 会得到 module.dependencies 都是 AMDRequireItemDependency
+    - 递归 normalModuleFactory 的产生 module 的过程
+
 ## loader
 
 示例演示 loader 的使用。
