@@ -70,13 +70,14 @@ declare function greet(g: GreetingLike): void;
  * ***** 组织类型 *******
  * greeter对象可以log到文件或显示警报。您可以向 .log(...) 提供 LogOptions，向 .alert(...) 提供警报选项
  */
-class Greeter {
-  constructor(val: string) { }
-  log: (options: GreetingLib.LogOptions) => void;
-  alert: (options: GreetingLib.AlertOptions) => void
+namespace declaration {
+  export class Greeter {
+    constructor(val: string) { }
+    log: (options: GreetingLib.LogOptions) => void;
+    alert: (options: GreetingLib.AlertOptions) => void
+  }
 }
-
-const g = new Greeter("Hello");
+const g = new declaration.Greeter("Hello");
 g.log({ verbose: true });
 g.alert({ modal: false, title: "Current Greeting" });
 /** 使用命名空间来组织类型。 */

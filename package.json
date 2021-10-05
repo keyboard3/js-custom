@@ -10,8 +10,5 @@
   },
   "devDependencies": {
     "promises-aplus-tests": "^2.1.2"
-  },
-  "dependencies": {
-    "@types/node": "^15.12.5"
   }
 }

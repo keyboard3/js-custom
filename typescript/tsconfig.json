@@ -1,12 +1,17 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
     "target": "ES5",
+    "allowJs": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
     "esModuleInterop": true,
     "noImplicitThis": true,
     "experimentalDecorators": true,
-    "emitDecoratorMetadata":true,
+    "emitDecoratorMetadata": true,
+    "typeRoots": ["./typings"],
+    "declaration": true,
+    "baseUrl": "./typescript/declaration",
   }
 }
