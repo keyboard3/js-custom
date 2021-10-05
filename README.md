@@ -25,9 +25,9 @@
   - [模块](./typescript/modules/index.ts)
   - - [ ] 类
   - - [ ] 引用：`工具类型、装饰器，声明合并，枚举，迭代器和函数生成器、JSX，Mixins、模块、模块解析、命名空间、命名空间和模块、Symbols、三斜线指令、类型兼容、类型推理、变量声明`
-      - [工具类型](./typescript/utility-types.ts): `除了ThisType以及字面量类型的操作工具类型，其他工具均用通过类型操作符自己实现了一份`
+      - [工具类型](./typescript/reference/utility-types.ts): `除了ThisType以及字面量类型的操作工具类型，其他工具均用通过类型操作符自己实现了一份`
   - - [ ] 声明文件
-      - [声明引用](./typescript/declaration/declaration-refrence.ts)
+      - [声明引用](./typescript/declaration/declaration-reference.ts),[装饰器](./typescript/declaration/decorators.ts)
   - - [ ] 项目配置
 - [Babel](./babel): `官方案例实践, 支持 make 动态构建`
   - [多种方式应用配置](./babel/es6-features/config.mjs)
