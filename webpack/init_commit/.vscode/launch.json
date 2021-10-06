@@ -1,0 +1,23 @@
+{
+  // 使用 IntelliSense 了解相关属性。
+  // 悬停以查看现有属性的描述。
+  // 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "pwa-node",
+      "request": "launch",
+      "name": "webpack-init-demo",
+      "skipFiles": ["<node_internals>/**"],
+      "cwd": "${workspaceFolder}/",
+      "runtimeArgs": [
+        "--nolazy",
+        "-r",
+        "/Users/ganchunyu/.nvm/versions/node/v16.0.0/lib/node_modules/ts-node/register/transpile-only"
+      ],
+      "program": "./webpack.ts",
+      "args": ["./demo/main.js", "./demo/bundle.js"],
+      "port": 5858
+    }
+  ]
+}

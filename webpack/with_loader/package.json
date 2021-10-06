@@ -18,5 +18,8 @@
     "script-loader": "0.1.x",
     "bundle-loader": "0.1.x",
     "val-loader": "0.1.x"
+  },
+  "devDependencies": {
+    "@types/node": "^16.10.3"
   }
 }

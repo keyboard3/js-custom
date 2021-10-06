@@ -4,32 +4,5 @@
   // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
   "configurations": [
-    {
-      "type": "pwa-node",
-      "request": "launch",
-      "name": "webpack-init-demo",
-      "skipFiles": ["<node_internals>/**"],
-      "cwd": "${workspaceFolder}/webpack/init_commit",
-      "runtimeArgs": ["--nolazy", "-r", "/Users/ganchunyu/.nvm/versions/node/v16.0.0/lib/node_modules/ts-node/register/transpile-only"],
-      "program": "./webpack.ts",
-      "args": ["./demo/main.js", "./demo/bundle.js"],
-      "port": 5858
-    },
-    {
-      "type": "pwa-node",
-      "request": "launch",
-      "name": "webpack-loader-demo",
-      "skipFiles": ["<node_internals>/**"],
-      "cwd": "${workspaceFolder}/webpack/with_loader/examples/code-splitted-require.context",
-      "program": "./build.js"
-    },
-    {
-      "type": "pwa-node",
-      "request": "launch",
-      "name": "webpack-plugin-loader",
-      "skipFiles": ["<node_internals>/**"],
-      "cwd": "${workspaceFolder}/webpack/with_plugin/examples/code-splitted-require.context-amd",
-      "program": "./build.js"
-    }
   ]
 }

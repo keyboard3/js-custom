@@ -12,9 +12,7 @@ argv.shift();
 argv.shift();
 var extraArgs = argv.join(" ");
 
-console.log("node ../../bin/webpack.js --verbose --min "+extraArgs+" example.js js/output.js");
-
-cp.exec("node ../../bin/webpack.js --verbose --min "+extraArgs+" example.js js/output.js", function (error, stdout, stderr) {
+cp.exec("node --nolazy -r ~/.nvm/versions/node/v16.0.0/lib/node_modules/ts-node/register/transpile-only ../../bin/webpack.ts --verbose --min "+extraArgs+" example.js js/output.js", function (error, stdout, stderr) {
 	if(stderr)
 		console.log(stderr);
 	if (error !== null)

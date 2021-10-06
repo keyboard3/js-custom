@@ -38,15 +38,6 @@ type Options = {
   /** 无用,运行时为 undefined */
   resolve: any
 }
-interface DepTree {
-  modules: { [key: Module["filename"]]: Partial<Module> }
-  modulesById: { [key: Module["id"]]: Partial<Module> }
-  chunks: { [key: Chunk["id"]]: Partial<Chunk> }
-  nextModuleId: Module["id"]
-  nextChunkId: Chunk["id"]
-  /** 用于检查内部模块重复的 chunk */
-  chunkModules: { [key: `${Module["id"]}...` & string]: Chunk["id"] }
-}
 interface Chunk {
   id: number
   modules: { [key: Module["id"]]: "include" | "in-parent" }
