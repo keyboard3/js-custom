@@ -1,22 +1,22 @@
-var writeSource = require("./writeSource");
+import writeSource from "./writeSource"
 
-module.exports = function(depTree, chunk, options) {
-	if(!options) {
+export default function (depTree: DepTree, chunk?: Partial<Chunk>, options?: Partial<Options> | Partial<Chunk>) {
+	if (!options) {
 		options = chunk;
 		chunk = null;
 	}
 	var buffer = [];
 	var modules = chunk ? chunk.modules : depTree.modulesById;
-	for(var moduleId in modules) {
-		if(chunk) {
-			if(chunk.modules[moduleId] !== "include")
+	for (var moduleId in modules) {
+		if (chunk) {
+			if (chunk.modules[moduleId] !== "include")
 				continue;
 		}
 		var module = depTree.modulesById[moduleId];
 		buffer.push("/******/");
 		buffer.push(moduleId);
 		buffer.push(": function(module, exports, require) {\n\n");
-		if(options.includeFilenames) {
+		if ((options as Options).includeFilenames) {
 			buffer.push("/*** ");
 			buffer.push(module.filename);
 			buffer.push(" ***/\n\n");

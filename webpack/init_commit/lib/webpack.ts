@@ -1,10 +1,10 @@
-var buildDeps = require("./buildDeps");
-var path = require("path");
-var writeChunk = require("./writeChunk");
-var fs = require("fs");
+import buildDeps from "./buildDeps"
+import path from "path"
+import writeChunk from "./writeChunk"
+import fs, { readFileSync } from "fs"
 
-var templateAsync = require("fs").readFileSync(path.join(__dirname, "templateAsync.js"));
-var templateSingle = require("fs").readFileSync(path.join(__dirname, "templateSingle.js"));
+var templateAsync = readFileSync(path.join(__dirname, "templateAsync.js"));
+var templateSingle = readFileSync(path.join(__dirname, "templateSingle.js"));
 /*
 	webpack(context, moduleName, options, callback);
 	webpack(context, moduleName, callback);
@@ -33,10 +33,17 @@ var templateSingle = require("fs").readFileSync(path.join(__dirname, "templateSi
 	- includeFilenames
 		 add absolute filenames of input files as comments
 */
-module.exports = function (context, moduleName, options: Partial<Options>, callback) {
-	if (typeof moduleName === "object") {
-		callback = options;
-		options = moduleName;
+type Callback = (err, sourceOrStats?: string | Partial<Stat>) => void
+function webpack(context: string, moduleName: string, options: Partial<Options>, callback: Callback): void;
+function webpack(context: string, moduleName: string, callback: Callback): void;
+function webpack(absoluteModulePath: string, options: Partial<Options>, callback: Callback): void;
+function webpack(absoluteModulePath: string, callback: Callback): void;
+
+function webpack(context: string, moduleNameOrOptionsOrCallback: string | Partial<Options> | Callback, optionsOrCallback?: Partial<Options> | Callback, callback?: Callback): void {
+	let options: Partial<Options>, moduleName: string;
+	if (typeof moduleNameOrOptionsOrCallback === "object") {
+		callback = optionsOrCallback as Callback;
+		options = moduleNameOrOptionsOrCallback as Partial<Options>;
 		moduleName = "./" + path.basename(context);
 		context = path.dirname(context);
 	}
@@ -47,18 +54,18 @@ module.exports = function (context, moduleName, options: Partial<Options>, callb
 		context = path.dirname(context);
 	}
 	if (!callback) {
-		callback = options;
+		callback = optionsOrCallback as Callback;
 		options = {};
 	}
-	buildDeps(context, moduleName, options, function (err, depTree) {
+	buildDeps(context, moduleName, options, function (err, depTree: DepTree) {
 		if (err) {
 			callback(err);
 			return;
 		}
-		var buffer: any = [];
+		var buffer: any[] | string | Partial<Stat> = [];
 		if (options.output) {
 			if (!options.outputJsonpFunction)
-				options.outputJsonpFunction = "webpackJsonp" + (options.libary || "");
+				options.outputJsonpFunction = "webpackJsonp" + (options.library || "");
 			options.scriptSrcPrefix = options.scriptSrcPrefix || "";
 			if (!options.outputDirectory) {
 				options.outputDirectory = path.dirname(options.output);
@@ -78,9 +85,9 @@ module.exports = function (context, moduleName, options: Partial<Options>, callb
 					chunk.id === 0 ? options.output : chunk.id + options.outputPostfix);
 				buffer = [];
 				if (chunk.id === 0) {
-					if (options.libary) {
+					if (options.library) {
 						buffer.push("/******/var ");
-						buffer.push(options.libary);
+						buffer.push(options.library);
 						buffer.push("=\n");
 					}
 					if (Object.keys(depTree.chunks).length > 1) {
@@ -107,10 +114,10 @@ module.exports = function (context, moduleName, options: Partial<Options>, callb
 				buffer.push("/******/})");
 				buffer = buffer.join("");
 				if (options.minimize) buffer = uglify(buffer, filename);
-				fs.writeFile(filename, buffer, "utf-8", function (err) {
+				fs.writeFile(filename, buffer as string, "utf-8", function (err) {
 					if (err) throw err;
 				});
-				fileSizeMap[path.basename(filename)] = buffer.length;
+				fileSizeMap[path.basename(filename)] = (buffer as string).length;
 			}
 			buffer = {};
 			buffer.chunkCount = chunksCount;
@@ -131,25 +138,25 @@ module.exports = function (context, moduleName, options: Partial<Options>, callb
 			}
 			buffer.modulesFirstChunk = sum;
 			buffer.fileSizes = fileSizeMap;
-			callback(null, buffer);
+			callback(null, buffer as Partial<Stat>);
 		} else {
-			if (options.libary) {
+			if (options.library) {
 				buffer.push("/******/var ");
-				buffer.push(options.libary);
+				buffer.push(options.library);
 				buffer.push("=\n");
 			}
 			buffer.push(templateSingle);
 			buffer.push("/******/({\n");
-			buffer.push(writeChunk(depTree, options));
+			buffer.push(writeChunk(depTree));
 			buffer.push("/******/})");
 			buffer = buffer.join("");
 			if (options.minimize) buffer = uglify(buffer, "output");
-			callback(null, buffer);
+			callback(null, buffer as string);
 		}
 	});
 }
 
-function uglify(input, filename) {
+function uglify(input: string, filename: string) {
 	var uglify = require("uglify-js");
 	var source: any;
 	try {
@@ -167,3 +174,5 @@ function uglify(input, filename) {
 function stringify(str) {
 	return '"' + str.replace(/\\/g, "\\\\").replace(/\"/g, "\\\"") + '"';
 }
+
+export default webpack;

@@ -58,10 +58,10 @@ if (argv.filenames) {
 }
 
 if (argv.libary) {
-	options.libary = argv.libary;
+	options.library = argv.libary;
 }
 
-var webpack = require("./lib/webpack.ts");
+import webpack from "./lib/webpack";
 
 if (argv.single) {
 	webpack(input, options, function (err, source) {
@@ -72,7 +72,7 @@ if (argv.single) {
 		if (output) {
 			fs.writeFileSync(output, source, "utf-8");
 		} else {
-			process.stdout.write(source);
+			process.stdout.write(source as string);
 		}
 	});
 } else {

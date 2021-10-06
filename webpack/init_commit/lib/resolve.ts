@@ -1,5 +1,5 @@
-var path = require("path");
-var fs = require("fs");
+import path from "path"
+import fs from "fs"
 
 // http://nodejs.org/docs/v0.4.8/api/all.html#all_Together...
 
@@ -10,9 +10,11 @@ var fs = require("fs");
  *   paths: array of lookup paths
  * callback: function(err, absoluteFilename)
  */
-module.exports = function resolve(context, identifier, options, callback) {
+type Callback = (err, absoluteFilename?: string) => void
+export default function resolve(context: string, identifier: string, optionsOrCallback: Partial<Options> | Callback, callback?: Callback) {
+	var options = optionsOrCallback as Partial<Options>;
 	if (!callback) {
-		callback = options;
+		callback = optionsOrCallback as Callback;
 		options = {};
 	}
 	if (!options)
@@ -21,7 +23,7 @@ module.exports = function resolve(context, identifier, options, callback) {
 		options.extensions = [".web.js", ".js"];
 	if (!options.paths)
 		options.paths = [];
-	function finalResult(err, absoluteFilename) {
+	function finalResult(err, absoluteFilename: string) {
 		if (err) {
 			callback("Module \"" + identifier + "\" not found in context \"" + context + "\"");
 			return;
@@ -32,7 +34,7 @@ module.exports = function resolve(context, identifier, options, callback) {
 	var contextArray = split(context);
 	if (identArray[0] === "." || identArray[0] === ".." || identArray[0] === "") {
 		var pathname = join(contextArray, identArray);
-		loadAsFile(pathname, options, function (err, absoluteFilename) {
+		loadAsFile(pathname, options, function (err, absoluteFilename: string) {
 			if (err) {
 				loadAsDirectory(pathname, options, finalResult);
 				return;
@@ -55,7 +57,7 @@ function join(a, b) {
 	return path.join.apply(path, c);
 }
 
-function loadAsFile(filename, options, callback) {
+function loadAsFile(filename: string, options: Partial<Options>, callback) {
 	filename = "/" + filename;
 	var pos = -1, result;
 	function tryCb(err, stats) {
@@ -73,12 +75,12 @@ function loadAsFile(filename, options, callback) {
 	fs.stat(result = filename, tryCb);
 }
 
-function loadAsDirectory(dirname, options, callback) {
+function loadAsDirectory(dirname: string, options: Partial<Options>, callback: Callback) {
 	var packageJsonFile = join(split(dirname), ["package.json"]);
 	fs.stat(packageJsonFile, function (err, stats) {
 		var mainModule = "index";
 		if (!err && stats.isFile()) {
-			fs.readFile(packageJsonFile, "utf-8", function (err, content) {
+			fs.readFile(packageJsonFile, "utf-8", function (err, content: any) {
 				content = JSON.parse(content);
 				if (content.main)
 					mainModule = content.main;
@@ -89,9 +91,9 @@ function loadAsDirectory(dirname, options, callback) {
 	});
 }
 
-function loadNodeModules(context, identifier, options, callback) {
+function loadNodeModules(context: string, identifier: string[], options: Partial<Options>, callback: Callback) {
 	nodeModulesPaths(context, options, function (err, dirs) {
-		function tryDir(dir) {
+		function tryDir(dir: string) {
 			var pathname = join(split(dir), identifier);
 			loadAsFile(pathname, options, function (err, absoluteFilename) {
 				if (err) {
@@ -115,7 +117,7 @@ function loadNodeModules(context, identifier, options, callback) {
 	});
 }
 
-function nodeModulesPaths(context, options, callback) {
+function nodeModulesPaths(context: string, options: Partial<Options>, callback) {
 	var parts = context;
 	var rootNodeModules = parts.indexOf("node_modules");
 	var rootWebModules = parts.indexOf("web_modules");
