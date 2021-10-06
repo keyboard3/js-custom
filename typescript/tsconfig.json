@@ -10,8 +10,8 @@
     "noImplicitThis": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "typeRoots": ["./typings"],
+    "typeRoots": ["./typings","./node_modules/@types"],
     "declaration": true,
-    "baseUrl": "./typescript/declaration",
+    "baseUrl": "./typescript/declaration"
   }
 }

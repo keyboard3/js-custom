@@ -2,7 +2,24 @@
 # yarn lockfile v1
 
 
+"@types/node@^16.10.3":
+  version "16.10.3"
+  resolved "https://registry.npmmirror.com/@types/node/download/@types/node-16.10.3.tgz?cache=0&sync_timestamp=1633466120636&other_urls=https%3A%2F%2Fregistry.npmmirror.com%2F%40types%2Fnode%2Fdownload%2F%40types%2Fnode-16.10.3.tgz#7a8f2838603ea314d1d22bb3171d899e15c57bd5"
+  integrity sha1-eo8oOGA+oxTR0iuzFx2JnhXFe9U=
+
 esprima@0.9.x:
   version "0.9.9"
   resolved "https://registry.yarnpkg.com/esprima/-/esprima-0.9.9.tgz#1b90925c975d632d7282939c3bb9c3a423c30490"
   integrity sha1-G5CSXJddYy1ygpOcO7nDpCPDBJA=
+
+optimist@0.2.x:
+  version "0.2.8"
+  resolved "https://registry.nlark.com/optimist/download/optimist-0.2.8.tgz#e981ab7e268b457948593b55674c099a815cac31"
+  integrity sha1-6YGrfiaLRXlIWTtVZ0wJmoFcrDE=
+  dependencies:
+    wordwrap ">=0.0.1 <0.1.0"
+
+"wordwrap@>=0.0.1 <0.1.0":
+  version "0.0.3"
+  resolved "https://registry.nlark.com/wordwrap/download/wordwrap-0.0.3.tgz#a3d5da6cd5c0bc0008d37234bbaf1bed63059107"
+  integrity sha1-o9XabNXAvAAI03I0u68b7WMFkQc=

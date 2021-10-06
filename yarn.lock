@@ -2,18 +2,10 @@
 # yarn lockfile v1
 
 
-"@babel/polyfill@^7.12.1":
-  version "7.12.1"
-  resolved "https://registry.nlark.com/@babel/polyfill/download/@babel/polyfill-7.12.1.tgz#1f2d6371d1261bbd961f3c5d5909150e12d0bd96"
-  integrity sha1-Hy1jcdEmG72WHzxdWQkVDhLQvZY=
-  dependencies:
-    core-js "^2.6.5"
-    regenerator-runtime "^0.13.4"
-
-"@types/node@^15.12.5":
-  version "15.12.5"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-15.12.5.tgz#9a78318a45d75c9523d2396131bd3cca54b2d185"
-  integrity sha512-se3yX7UHv5Bscf8f1ERKvQOD6sTyycH3hdaoozvaLxgUiY5lIGEeH37AD0G0Qi9kPqihPn0HOfd2yaIEN9VwEg==
+"@types/node@^16.10.3":
+  version "16.10.3"
+  resolved "https://registry.npmmirror.com/@types/node/download/@types/node-16.10.3.tgz?cache=0&sync_timestamp=1633466120636&other_urls=https%3A%2F%2Fregistry.npmmirror.com%2F%40types%2Fnode%2Fdownload%2F%40types%2Fnode-16.10.3.tgz#7a8f2838603ea314d1d22bb3171d899e15c57bd5"
+  integrity sha1-eo8oOGA+oxTR0iuzFx2JnhXFe9U=
 
 array-filter@^1.0.0:
   version "1.0.0"
@@ -44,11 +36,6 @@ commander@2.3.0:
   version "2.3.0"
   resolved "https://registry.npm.taobao.org/commander/download/commander-2.3.0.tgz#fd430e889832ec353b9acd1de217c11cb3eef873"
   integrity sha1-/UMOiJgy7DU7ms0d4hfBHLPu+HM=
-
-core-js@^2.6.5:
-  version "2.6.12"
-  resolved "https://registry.npmmirror.com/core-js/download/core-js-2.6.12.tgz?cache=0&sync_timestamp=1632696208678&other_urls=https%3A%2F%2Fregistry.npmmirror.com%2Fcore-js%2Fdownload%2Fcore-js-2.6.12.tgz#d9333dfa7b065e347cc5682219d6f690859cc2ec"
-  integrity sha1-2TM9+nsGXjR8xWgiGdb2kIWcwuw=
 
 debug@2.2.0:
   version "2.2.0"
@@ -333,11 +320,6 @@ promises-aplus-tests@^2.1.2:
     mocha "^2.5.3"
     sinon "^1.10.3"
     underscore "~1.8.3"
-
-regenerator-runtime@^0.13.4:
-  version "0.13.7"
-  resolved "https://registry.nlark.com/regenerator-runtime/download/regenerator-runtime-0.13.7.tgz#cac2dacc8a1ea675feaabaeb8ae833898ae46f55"
-  integrity sha1-ysLazIoepnX+qrrriugziYrkb1U=
 
 safe-buffer@^5.1.2:
   version "5.2.1"

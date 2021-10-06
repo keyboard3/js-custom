@@ -10,11 +10,9 @@
       "name": "webpack-init-demo",
       "skipFiles": ["<node_internals>/**"],
       "cwd": "${workspaceFolder}/webpack/init_commit",
-      "program": "./webpack.js",
-      "args": [
-        "./demo/main.js",
-        "./demo/bundle.js"
-      ],
+      "runtimeArgs": ["--nolazy", "-r", "/Users/ganchunyu/.nvm/versions/node/v16.0.0/lib/node_modules/ts-node/register/transpile-only"],
+      "program": "./webpack.ts",
+      "args": ["./demo/main.js", "./demo/bundle.js"],
       "port": 5858
     },
     {
@@ -32,7 +30,6 @@
       "skipFiles": ["<node_internals>/**"],
       "cwd": "${workspaceFolder}/webpack/with_plugin/examples/code-splitted-require.context-amd",
       "program": "./build.js"
-    },
-    
+    }
   ]
 }
