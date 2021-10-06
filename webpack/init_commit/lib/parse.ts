@@ -235,11 +235,11 @@ function parseStringArray(expression) {
 	return [parseString(expression)];
 }
 
-export default function parse(source: string, options?: Options): Partial<Module> {
+export default function parse(source: string, options?: Options){
 	var ast = esprima.parse(source, { range: true, loc: true });
 	if (!ast || typeof ast != "object")
 		throw new Error("Source couldn't be parsed");
-	var context = {};
+	var context: Partial<ModuleSource> = {};
 	walkStatements(context, ast.body);
 	return context;
 }

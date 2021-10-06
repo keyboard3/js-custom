@@ -39,19 +39,24 @@ type Options = {
   resolve: any
 }
 interface DepTree {
-  modules: { [key: Module["id"]]: Partial<Module> }
-  chunks: { [key: Chunk["id"]]: Partial<Chunk> }
+  modules: { [key: Module["filename"]]: Partial<Module> }
   modulesById: { [key: Module["id"]]: Partial<Module> }
+  chunks: { [key: Chunk["id"]]: Partial<Chunk> }
   nextModuleId: Module["id"]
   nextChunkId: Chunk["id"]
+  /** 用于检查内部模块重复的 chunk */
   chunkModules: { [key: `${Module["id"]}...` & string]: Chunk["id"] }
 }
 interface Chunk {
   id: number
   modules: { [key: Module["id"]]: "include" | "in-parent" }
+  /** chunk 的入口模块 */
   context: Partial<Module>
+  /** chunk 是那个 chunk 的 require.ensure 展开的 */
   parents: Chunk["id"][]
+  /** 如果 chunk 中没有 include 模块则为 true */
   empty: boolean
+  /** 用于检查内部模块重复的 chunk,指向已经存在的 chunk */
   equals: Chunk["id"]
 }
 
@@ -59,26 +64,36 @@ interface ExpressionLocation {
   line: number
   column: number
 }
-interface RequireModuleSource extends ExpressionLocation {
-  name: string //require
-  nameRange: [number, number]//require(name)
-}
-interface RequireEnsureSource extends ExpressionLocation {
-  namesRange: [number, number]//require([names])
-  requires: { name?: string }[]
+interface ModuleSource {
+  requires: Partial<RequireModuleSource>[]
   asyncs: Partial<RequireEnsureSource>[]
+}
+interface RequireModuleSource extends ExpressionLocation {
+  id: number;//模块 id
+  name: string //require(name)
+  /** 表达式中名字在源码中的索引开始和结束位置 */
+  nameRange: [number, number]
+}
+interface RequireEnsureSource extends ExpressionLocation, ModuleSource {
+  /** 模块内异步 ensure 指向的 chunk */
+  chunkId: Chunk["id"]
+  /** 表达式中第一个参数(数组)在源码中的索引开始和结束位置 */
+  namesRange: [number, number]//require([names])
 }
 interface Module extends RequireModuleSource, RequireEnsureSource {
   id: number
+  /** 作为 chunk 的入口模块才有，其他模块没有 */
   chunkId: Chunk["id"]
+  /** 被引用过 chunkId */
   chunks: Chunk["id"][]
-  requires: Partial<Module>[]
-  asyncs: Partial<Module>[]
+  /** 模块内容 */
   source: string
+  /** 模块被检索到的实际文件地址 */
   filename: string
 }
 interface SourceReplaceItem {
   from: number
   to: number
+  /** chunkId 或者 moduleId */
   value: string
 }
