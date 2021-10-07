@@ -15,7 +15,7 @@ function writeChunk(depTree: DepTree, chunkOrOptions: Partial<Chunk | Options>, 
 	}
 	var buffer = [];
 	var modules = chunk ? chunk.modules : depTree.modules;
-	var includedModules = [];
+	var includedModules: Partial<Module | ContextModule>[] = [];
 	for (var moduleId in modules) {
 		if (chunk) {
 			if (chunk.modules[moduleId] !== "include")
@@ -24,6 +24,7 @@ function writeChunk(depTree: DepTree, chunkOrOptions: Partial<Chunk | Options>, 
 		var module = depTree.modules[moduleId];
 		includedModules.push(module);
 	}
+	/** 将 chunk 内的模块都排好序插入 */
 	includedModules.sort(function (a, b) { return a.realId - b.realId; });
 	includedModules.forEach(function (module) {
 		buffer.push("/******/");
@@ -31,7 +32,7 @@ function writeChunk(depTree: DepTree, chunkOrOptions: Partial<Chunk | Options>, 
 		buffer.push(": function(module, exports, require) {\n\n");
 		if (options.includeFilenames) {
 			buffer.push("/*** ");
-			buffer.push(module.filename);
+			buffer.push((module as Module).filename);
 			buffer.push(" ***/\n\n");
 		}
 		buffer.push(writeSource(module, options, function (id) { return depTree.modules[id].realId }));

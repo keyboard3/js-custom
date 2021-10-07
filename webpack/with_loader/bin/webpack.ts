@@ -4,11 +4,15 @@
 	MIT License http://www.opensource.org/licenses/mit-license.php
 	Author Tobias Koppers @sokra
 */
-var path = require("path");
-var fs = require("fs");
-var util = require("util");
-var sprintf = require("sprintf").sprintf;
-var argv = require("optimist")
+import path from "path"
+import fs from "fs"
+import util from "util"
+import { sprintf } from "sprintf"
+import optimist from "optimist"
+import webpack from "../lib/webpack"
+import EventEmitter from "events"
+
+var argv = optimist
 	.usage("Usage: $0 <input> <output>")
 
 	.boolean("single")
@@ -117,7 +121,6 @@ if (argv.alias) {
 		aliasObj[alias[0]] = alias[1];
 	});
 }
-import webpack from "../lib/webpack"
 
 function c(str) {
 	return argv.colors ? str : "";
@@ -141,7 +144,7 @@ if (!output) {
 	if (!options.output) options.output = path.basename(output);
 	if (!options.outputPostfix) options.outputPostfix = "." + path.basename(output);
 	if (argv.progress) {
-		if (!options.events) options.events = new (require("events").EventEmitter)();
+		if (!options.events) options.events = new EventEmitter();
 		var events = options.events;
 
 		var sum = 0;
@@ -201,8 +204,8 @@ if (!output) {
 					console.log(c("\033[1m") + sprintf("%" + (5 + options.output.length) + "s", file) + c("\033[22m") + ": " + c("\033[1m") + sprintf("%8d", stats.fileSizes[file]) + c("\033[22m") + " characters");
 				});
 			var cwd: string | RegExp = process.cwd();
-			var cwdParent = path.dirname(cwd);
-			var buildins = path.join(__dirname, "..");
+			var cwdParent: string | RegExp = path.dirname(cwd);
+			var buildins: string | RegExp = path.join(__dirname, "..");
 			cwd = cwd.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
 			cwd = new RegExp("^" + cwd + "|(!)" + cwd, "g");
 			var buildinsAsModule = cwd.test(buildins);

@@ -6,6 +6,7 @@ import parse from "./parse"
 import resolve, { context as ResolveContext } from "./resolve"
 import fs from "fs";
 import path from "path";;
+import { isModule } from './util';
 
 /**
  * context: current directory
@@ -36,6 +37,7 @@ function buildDeps(context: string, mainModule: string, optionsOrCallback: Parti
 		chunkModules: {} // used by checkObsolete
 	}
 	var mainModuleId;
+	/** 通过入口的模块递归解析出所有依赖的模块 */
 	addModule(depTree, context, mainModule, options, { type: "main" }, function (err, id) {
 		if (err) {
 			callback(err);
@@ -44,10 +46,13 @@ function buildDeps(context: string, mainModule: string, optionsOrCallback: Parti
 		mainModuleId = id;
 		buildTree();
 	});
+	/** 根据已经解析所有依赖的模块，分析出所有拆分的 chunk (独立js文件包含那些模块) */
 	function buildTree() {
+		/** 拆分入口 chunk 和资源 chunk */
 		addChunk(depTree, depTree.modulesById[mainModuleId], options);
 		createRealIds(depTree, options);
 		for (var chunkId in depTree.chunks) {
+			/** 检查每个 chunk 的模块，保证资源包请求链上不会出现重复的模块，不会出现空以及重复的资源包 */
 			removeParentsModules(depTree, depTree.chunks[chunkId]);
 			removeChunkIfEmpty(depTree, depTree.chunks[chunkId]);
 			checkObsolete(depTree, depTree.chunks[chunkId]);
@@ -63,7 +68,16 @@ function buildDeps(context: string, mainModule: string, optionsOrCallback: Parti
 		callback(null, depTree);
 	}
 }
-
+/**
+ * 连续通过 loaders 处理模块内容
+ * @param request 完整的模块绝对路径，包括 loaders
+ * @param loaders 
+ * @param filenames 模块的资源文件绝对路径
+ * @param contents 模块的资源文件内容
+ * @param options 
+ * @param callback 经过 loaders 处理过之后的模块内容回调
+ * @returns 
+ */
 function execLoaders(request: string, loaders: string[], filenames: string[], contents: string[], options: Partial<Options>, callback: Callback) {
 	if (loaders.length === 0)
 		callback(null, contents[0]);
@@ -71,6 +85,7 @@ function execLoaders(request: string, loaders: string[], filenames: string[], co
 		var loaderFunctions = [];
 		try {
 			loaders.forEach(function (name) {
+				/** require 导入 loader 函数 */
 				var loader = require(name);
 				loaderFunctions.push(loader);
 			});
@@ -89,6 +104,7 @@ function execLoaders(request: string, loaders: string[], filenames: string[], co
 			if (loaderFunctions.length > 0) {
 				try {
 					var async = false;
+					/** 提供给 loader 的 this 上下文 */
 					var context = {
 						request: request,
 						filenames: filenames,
@@ -116,6 +132,7 @@ function execLoaders(request: string, loaders: string[], filenames: string[], co
 						values: undefined,
 						options: options
 					};
+					/** 取出最近的 loader 函数将上一个结果丢进去, apply 接收的是一个参数数组 */
 					var retVal = loaderFunctions.pop().apply(context, args);
 					if (!async)
 						nextLoader(retVal === undefined ? new Error("loader did not return a value") : null, retVal);
@@ -132,10 +149,10 @@ function execLoaders(request: string, loaders: string[], filenames: string[], co
 	}
 
 }
-
-function addModule(depTree: Partial<DepTree>, context: string, moduleName: string, options: Partial<Options>, reason: Reason, callback: Callback) {
+/** 根据依赖的模块名解析出模块对象 */
+function addModule(depTree: Partial<DepTree>, context: string, moduleName: string, options: Partial<Options>, reason: ModuleReason, callback: Callback) {
 	resolve(context || path.dirname(moduleName), moduleName, options.resolve, resolved);
-	function resolved(err, filename) {
+	function resolved(err, filename?: string) {
 		if (err) {
 			callback(err);
 			return;
@@ -164,7 +181,7 @@ function addModule(depTree: Partial<DepTree>, context: string, moduleName: strin
 						callback(err);
 						return;
 					}
-					var deps;
+					var deps: ModuleDeps;
 					try {
 						deps = parse(source, options.parse);
 					} catch (e) {
@@ -176,13 +193,19 @@ function addModule(depTree: Partial<DepTree>, context: string, moduleName: strin
 					module.contexts = deps.contexts || [];
 					module.source = source;
 
-					var requires = {}, directRequire = {};
-					var contexts = [], directContexts = {};
-					function add(r) {
+					/** 模块内的所有依赖的 require，同模块不同位置的依赖 */
+					var requires: { [key: CommonJsRequireDependency["name"]]: CommonJsRequireDependency[] } = {};
+					/** 非异步中，直接引用的模块 */
+					var directRequire: { [key: CommonJsRequireDependency["name"]]: boolean } = {};
+					/** 模块内所有依赖的 require.context */
+					var contexts: { context: RequireContextDependency, module: Partial<Module> }[] = [];
+					/** 非异步中的 直接引用的 require.context */
+					var directContexts: { [key: RequireContextDependency["name"]]: boolean } = {};
+					function add(r: CommonJsRequireDependency) {
 						requires[r.name] = requires[r.name] || [];
 						requires[r.name].push(r);
 					}
-					function addContext(m) {
+					function addContext(m: Partial<Module>) {
 						return function (c) {
 							contexts.push({ context: c, module: m });
 						}
@@ -199,8 +222,9 @@ function addModule(depTree: Partial<DepTree>, context: string, moduleName: strin
 							directContexts[c.name] = true;
 						});
 					}
+					/** 递归解析异步中的所有 require 和 require.context */
 					if (module.asyncs)
-						module.asyncs.forEach(function addAsync(c) {
+						module.asyncs.forEach(function addAsync(c: RequireEnsureDependencyBlock) {
 							if (c.requires)
 								c.requires.forEach(add);
 							if (c.asyncs)
@@ -211,6 +235,7 @@ function addModule(depTree: Partial<DepTree>, context: string, moduleName: strin
 					let requiresNames = Object.keys(requires);
 					var count = requiresNames.length + contexts.length + 1;
 					var errors = [];
+					/** 顺序解析当前模块内的所有 require(moduleName) 依赖的模块。包括异步回调中的 require */
 					if (requiresNames.length)
 						requiresNames.forEach(function (moduleName) {
 							var reason = {
@@ -223,6 +248,7 @@ function addModule(depTree: Partial<DepTree>, context: string, moduleName: strin
 									depTree.errors.push("Cannot find module '" + moduleName + "'\n " + err +
 										"\n @ " + filename + " (line " + requires[moduleName][0].line + ", column " + requires[moduleName][0].column + ")");
 								} else {
+									/** 给这个同名的依赖都赋值上解析完的模块 id */
 									requires[moduleName].forEach(function (requireItem) {
 										requireItem.id = moduleId;
 									});
@@ -230,6 +256,7 @@ function addModule(depTree: Partial<DepTree>, context: string, moduleName: strin
 								endOne();
 							});
 						});
+					/** 顺序解析当前模块内的所有 require.context(dirname)。包括异步回调中的 require.context */
 					if (contexts) {
 						contexts.forEach(function (contextObj) {
 							var context = contextObj.context;
@@ -238,11 +265,13 @@ function addModule(depTree: Partial<DepTree>, context: string, moduleName: strin
 								type: directContexts[context.name] ? "context" : "async context",
 								filename: filename
 							} as const;
-							addContextModule(depTree, path.dirname(filename), context.name, options, reason, function (err, contextModuleId) {
+							/** 上下文模块内自动会 commonJs 依赖目录下的所有文件 */
+							addContextModule(depTree, path.dirname(filename), context.name, options, reason, function (err, contextModuleId: number) {
 								if (err) {
 									depTree.errors.push("Cannot find context '" + context.name + "'\n " + err +
 										"\n @ " + filename + " (line " + context.line + ", column " + context.column + ")");
 								} else {
+									/** 给模块的 commonJs 依赖上添加一个上下文模块的 id */
 									context.id = contextModuleId;
 									module.requires.push({ id: context.id });
 								}
@@ -271,9 +300,10 @@ function addModule(depTree: Partial<DepTree>, context: string, moduleName: strin
 	}
 }
 
-function addContextModule(depTree: Partial<DepTree>, context: string, contextModuleName: string, options: Partial<Options>, reason: Reason, callback: Callback) {
+/** 添加上下文模块，目的只是将目录下的所有有效模块打包 */
+function addContextModule(depTree: Partial<DepTree>, context: string, contextModuleName: string, options: Partial<Options>, reason: ModuleReason, callback: Callback) {
 	ResolveContext(context, contextModuleName, options.resolve, resolved);
-	function resolved(err, dirname) {
+	function resolved(err, dirname: string) {
 		if (err) {
 			callback(err);
 			return;
@@ -296,13 +326,22 @@ function addContextModule(depTree: Partial<DepTree>, context: string, contextMod
 			dirname = loaders.pop();
 			var prependLoaders = loaders.length === 0 ? "" : loaders.join("!") + "!";
 			var extensions = (options.resolve && options.resolve.extensions) || [".web.js", ".js"];
-			function doDir(dirname, moduleName, done) {
+			/** 当 dirname 全部被处理完成之后回调告知 contextModule.id */
+			doDir(dirname, ".", function (err) {
+				if (err) {
+					callback(err);
+					return;
+				}
+				callback(null, contextModule.id);
+			});
+			function doDir(dirname: string, moduleName: string, done: (err?: any) => void) {
 				fs.readdir(dirname, function (err, list) {
 					if (err) {
 						done(err);
 					} else {
 						var count = list.length + 1;
 						var errors = [];
+						/** 直到这个目录下的所有文件都被处理过，才结束这个目录的回调 */
 						function endOne(err?: any) {
 							if (err) {
 								errors.push(err);
@@ -315,6 +354,7 @@ function addContextModule(depTree: Partial<DepTree>, context: string, contextMod
 									done();
 							}
 						}
+						/** 递归将目录下的所有文件都添加到 contextModule 的requires commonJs 依赖中 */
 						list.forEach(function (file) {
 							var filename = path.join(dirname, file);
 							fs.stat(filename, function (err, stat) {
@@ -323,6 +363,7 @@ function addContextModule(depTree: Partial<DepTree>, context: string, contextMod
 									endOne();
 								} else {
 									if (stat.isDirectory()) {
+										/** 不处理第三方模块目录 */
 										if (file === "node_modules" || file === "web_modules")
 											endOne();
 										else
@@ -339,6 +380,7 @@ function addContextModule(depTree: Partial<DepTree>, context: string, contextMod
 															match = true;
 													});
 											});
+										/** 如果发现这个文件不是资源文件也没有 loader 匹配 */
 										if (!match && loaders.length === 0) {
 											endOne();
 											return;
@@ -346,12 +388,13 @@ function addContextModule(depTree: Partial<DepTree>, context: string, contextMod
 										var moduleReason = {
 											type: "context",
 											filename: reason.filename
-										};
-										addModule(depTree, dirname, prependLoaders + filename, options, reason, function (err, moduleId) {
+										} as const;
+										addModule(depTree, dirname, prependLoaders + filename, options, moduleReason, function (err, moduleId) {
 											if (err) {
 												depTree.warnings.push("A file in context was excluded because of error: " + err);
 												endOne();
 											} else {
+												/** 目录下有效的模块文件被解析成模块添加到 contextModule 上 */
 												contextModule.requires.push({ id: moduleId });
 												contextModule.requireMap[moduleName + "/" + file] = moduleId;
 												endOne();
@@ -365,19 +408,12 @@ function addContextModule(depTree: Partial<DepTree>, context: string, contextMod
 					}
 				});
 			}
-			doDir(dirname, ".", function (err) {
-				if (err) {
-					callback(err);
-					return;
-				}
-				callback(null, contextModule.id);
-			});
 		}
 	}
 }
-
+/** 按照模块字符串名排序，设置模块 realId */
 function createRealIds(depTree: Partial<DepTree>, options: Partial<Options>) {
-	var sortedModules = [];
+	var sortedModules: Partial<ContextModule | Module>[] = [];
 	for (var id in depTree.modulesById) {
 		if ("" + id === "0") continue;
 		var module = depTree.modulesById[id];
@@ -399,11 +435,9 @@ function createRealIds(depTree: Partial<DepTree>, options: Partial<Options>) {
 		}
 		var diff = b.usages - a.usages;
 		if (diff !== 0) return diff;
-		if (typeof a.filename === "string" || typeof b.filename === "string") {
-			if (typeof a.filename !== "string")
-				return -1;
-			if (typeof b.filename !== "string")
-				return 1;
+		if (isModule(a) || isModule(b)) {
+			if (!isModule(a)) return -1;
+			if (!isModule(b)) return 1;
 			if (a.filename === b.filename)
 				return 0;
 			return (a.filename < b.filename) ? -1 : 1;
@@ -412,13 +446,13 @@ function createRealIds(depTree: Partial<DepTree>, options: Partial<Options>) {
 			return 0;
 		return (a.dirname < b.dirname) ? -1 : 1;
 	});
-	sortedModules.forEach(function (modu, idx) {
-		modu.realId = idx + 1;
+	sortedModules.forEach(function (module, idx) {
+		module.realId = idx + 1;
 	});
 }
-
-function addChunk(depTree: Partial<DepTree>, chunkStartPoint: Partial<Module>, options: Partial<Options>) {
-	var chunk = {
+/** 添加分包的 chunk, 入口模块以及模块内所有异步入口。异步的 chunk 只是为了打包资源模块 */
+function addChunk(depTree: Partial<DepTree>, chunkStartPoint: Partial<Module> | Partial<RequireEnsureDependencyBlock>, options: Partial<Options>) {
+	var chunk: Partial<Chunk> = {
 		id: depTree.nextChunkId++,
 		modules: {},
 		context: chunkStartPoint
@@ -426,6 +460,7 @@ function addChunk(depTree: Partial<DepTree>, chunkStartPoint: Partial<Module>, o
 	depTree.chunks[chunk.id] = chunk;
 	if (chunkStartPoint) {
 		chunkStartPoint.chunkId = chunk.id;
+		/** 从主模块/异步依赖块，递归附加模块以及拆包 */
 		addModuleToChunk(depTree, chunkStartPoint, chunk.id, options);
 	}
 	return chunk;
@@ -437,20 +472,24 @@ function addModuleToChunk(depTree: Partial<DepTree>, context: Partial<Module>, c
 		context.chunks.push(chunkId);
 		if (context.id !== undefined)
 			depTree.chunks[chunkId].modules[context.id] = "include";
+		/** 给模块内所有 commonJs 依赖模块都附加到当前包中 */
 		if (context.requires) {
 			context.requires.forEach(function (requireItem) {
 				if (requireItem.id)
 					addModuleToChunk(depTree, depTree.modulesById[requireItem.id], chunkId, options);
 			});
 		}
+		/** 给模块内的异步块开始，分拆包 chunk */
 		if (context.asyncs) {
 			context.asyncs.forEach(function (context) {
 				var subChunk
 				if (context.chunkId) {
 					subChunk = depTree.chunks[context.chunkId];
 				} else {
+					/** 异步块只是打包，以当前的异步块作为入口创建独立的 chunk */
 					subChunk = addChunk(depTree, context, options);
 				}
+				/** 记录这个资源 chunk 的父级 */
 				subChunk.parents = subChunk.parents || [];
 				subChunk.parents.push(chunkId);
 			});

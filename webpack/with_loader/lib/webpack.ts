@@ -100,7 +100,7 @@ function webpack(context: string, moduleNameOrOptionsOrCallback: string | Partia
 	options.resolve.loaders.push({ test: /\.jade$/, loader: "jade" });
 	options.resolve.loaders.push({ test: /\.css$/, loader: "style!css" });
 	options.resolve.loaders.push({ test: /\.less$/, loader: "style!less" });
-	buildDeps(context, moduleName, options, function (err, depTree) {
+	buildDeps(context, moduleName, options, function (err, depTree: DepTree) {
 		if (err) {
 			callback(err);
 			return;
@@ -117,8 +117,8 @@ function webpack(context: string, moduleNameOrOptionsOrCallback: string | Partia
 			if (!options.outputPostfix) {
 				options.outputPostfix = "." + options.output;
 			}
-			var fileSizeMap = {};
-			var fileModulesMap = {};
+			var fileSizeMap: Partial<Stat["fileSizes"]> = {};
+			var fileModulesMap: Partial<Stat["fileModules"]> = {};
 			var chunksCount = 0;
 			for (var chunkId in depTree.chunks) {
 				var chunk = depTree.chunks[chunkId];
@@ -174,8 +174,8 @@ function webpack(context: string, moduleNameOrOptionsOrCallback: string | Partia
 						modulesArray.push({
 							id: module.realId,
 							size: module.size,
-							filename: module.filename,
-							dirname: module.dirname,
+							filename: (module as Module).filename,
+							dirname: (module as ContextModule).dirname,
 							reasons: module.reasons
 						});
 					}

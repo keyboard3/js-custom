@@ -189,6 +189,7 @@ function walkExpression(context, expression) {
 			break;
 		case "CallExpression":
 			var noCallee = false;
+			/** require(module),require(condition?"moduleA":"moduleB"),require("./templates/"+template) */
 			if (context.overwrite.indexOf("require") === -1 &&
 				expression.callee && expression.arguments &&
 				expression.arguments.length == 1 &&
@@ -196,20 +197,23 @@ function walkExpression(context, expression) {
 				expression.callee.name === "require") {
 				var param = parseCalculatedString(expression.arguments[0]);
 				if (param.conditional) {
+					/** require(xx?"./a":"./b") */
 					context.requires = context.requires || [];
+					/** 从上面添加多个 commonJs 依赖 */
 					param.conditional.forEach(function (paramItem) {
 						context.requires.push({
 							name: paramItem.value,
 							valueRange: paramItem.range,
 							line: expression.loc.start.line,
 							column: expression.loc.start.column
-						} as RequireValueModuleSource);
+						} as CommonJsRequireDependency);
 					});
 				} else if (param.code) {
 					// make context
 					var pos = param.value.indexOf("/");
 					context.contexts = context.contexts || [];
 					if (pos === -1) {
+						/** require("name"+xx),require(variable) */
 						var newContext = {
 							name: ".",
 							require: true,
@@ -217,8 +221,9 @@ function walkExpression(context, expression) {
 							line: expression.loc.start.line,
 							column: expression.loc.start.column
 						};
-						context.contexts.push(newContext as RequireCalleeModuleSource);
+						context.contexts.push(newContext as RequireContextDependency);
 					} else {
+						/** require("a/name"+xx) */
 						var match = /\/[^\/]*$/.exec(param.value);
 						var dirname = param.value.substring(0, match.index);
 						var remainder = "." + param.value.substring(match.index);
@@ -230,20 +235,22 @@ function walkExpression(context, expression) {
 							line: expression.loc.start.line,
 							column: expression.loc.start.column
 						} as const;
-						context.contexts.push(newContext as RequireCalleeModuleSource);
+						context.contexts.push(newContext as RequireContextDependency);
 					}
 				} else {
 					// normal require
+					/** require(xx) */
 					context.requires = context.requires || [];
 					context.requires.push({
 						name: param.value,
 						expressionRange: [expression.callee.range[0], expression.range[1]],
 						line: expression.loc.start.line,
 						column: expression.loc.start.column
-					} as RequireExpressionModuleSource);
+					} as CommonJsRequireDependency);
 				}
 				noCallee = true;
 			}
+			/** require.async(["a","b"],()=>{}) require.ensure(["a","b"],()=>{}) */
 			if (context.overwrite.indexOf("require") === -1 &&
 				expression.callee && expression.arguments &&
 				expression.arguments.length >= 1 &&
@@ -253,7 +260,7 @@ function walkExpression(context, expression) {
 				expression.callee.property.type === "Identifier" &&
 				{ async: 1, ensure: 1 }.hasOwnProperty(expression.callee.property.name)) {
 				let param = parseStringArray(expression.arguments[0]);
-				let newContext: RequireEnsureSource = {
+				let newContext: RequireEnsureDependencyBlock = {
 					requires: [],
 					namesRange: expression.arguments[0].range,
 					line: expression.loc.start.line,
@@ -262,9 +269,11 @@ function walkExpression(context, expression) {
 					overwrite: context.overwrite.slice(),
 					options: context.options
 				};
+				/** 将异步模块显示依赖的参数模块都记录进来 */
 				param.forEach(function (r) {
 					newContext.requires.push({ name: r });
 				});
+				/** 记录异步 block 的回调函数 body 的范围 */
 				if (expression.arguments.length >= 2 &&
 					expression.arguments[1].type === "FunctionExpression" &&
 					expression.arguments[1].body &&
@@ -279,6 +288,7 @@ function walkExpression(context, expression) {
 				context = newContext;
 				noCallee = true;
 			}
+			/** require.context("./templates") */
 			if (context.overwrite.indexOf("require") === -1 &&
 				expression.callee && expression.arguments &&
 				expression.arguments.length == 1 &&
@@ -295,9 +305,10 @@ function walkExpression(context, expression) {
 					line: expression.loc.start.line,
 					column: expression.loc.start.column
 				} as const;
-				context.contexts.push(newContext as RequireExpressionModuleSource);
+				context.contexts.push(newContext as RequireContextDependency);
 				noCallee = true;
 			}
+			/** require.valueOf() */
 			if (context.overwrite.indexOf("require") === -1 &&
 				expression.callee &&
 				expression.callee.type === "MemberExpression" &&
@@ -324,6 +335,7 @@ function walkExpression(context, expression) {
 				walkExpression(context, expression.property);
 			break;
 		case "Identifier":
+			/** var r = require; r("./file"); */
 			if (context.overwrite.indexOf("require") === -1 &&
 				expression.name === "require") {
 				context.contexts = context.contexts || [];
@@ -335,9 +347,11 @@ function walkExpression(context, expression) {
 					line: expression.loc.start.line,
 					column: expression.loc.start.column
 				} as const;
-				context.contexts.push(newContext as RequireCalleeModuleSource);
+				/** 间接引用，默认为引用当前目录 => var r = require.context(".") */
+				context.contexts.push(newContext as RequireContextDependency);
 			} else if (context.overwrite.indexOf(expression.name) === -1 &&
 				context.options.overwrites.hasOwnProperty(expression.name)) {
+				/** options.overwrites=>{ "$": "jquery" }，则 var a = $ => var a = require("jquery")  */
 				context.requires = context.requires || [];
 				var overwrite = context.options.overwrites[expression.name];
 				var append = undefined;
@@ -351,7 +365,7 @@ function walkExpression(context, expression) {
 					column: expression.loc.start.column,
 					variable: expression.name,
 					append: append
-				} as RequireUnKnowModuleSource);
+				} as CommonJsRequireDependency);
 			}
 			break;
 	}
@@ -387,6 +401,7 @@ function parseString(expression): string {
 function parseCalculatedString(expression): ParseExpressionResult {
 	switch (expression.type) {
 		case "BinaryExpression":
+			/** 得到二元比到时+的结果 */
 			if (expression.operator == "+") {
 				var left = parseCalculatedString(expression.left);
 				var right = parseCalculatedString(expression.right);
@@ -400,6 +415,7 @@ function parseCalculatedString(expression): ParseExpressionResult {
 			}
 			break;
 		case "ConditionalExpression":
+			/** 得到3元条件表达式的结果 items */
 			var consequent = parseCalculatedString(expression.consequent);
 			var alternate = parseCalculatedString(expression.alternate);
 			var items = [];
@@ -415,9 +431,11 @@ function parseCalculatedString(expression): ParseExpressionResult {
 			else break;
 			return { value: "", code: true, conditional: items };
 		case "Literal":
+			/** 得到字面量表达式的值 */
 			return { range: expression.range, value: expression.value + "" };
 			break;
 	}
+	/** 其他情况不处理，没有值 */
 	return { value: "", code: true };
 }
 
@@ -434,7 +452,7 @@ function parseStringArray(expression) {
 	return [parseString(expression)];
 }
 
-export default function parse(source: string, options: Partial<Options["parse"]>) {
+export default function parse(source: string, options: Options["parse"]) {
 	var ast = esprima.parse(source, { range: true, loc: true, raw: true });
 	if (!ast || typeof ast != "object")
 		throw new Error("Source couldn't be parsed");
@@ -447,5 +465,5 @@ export default function parse(source: string, options: Partial<Options["parse"]>
 	};
 	walkStatements(context, ast.body);
 	delete context.options;
-	return context;
+	return (context as unknown) as ModuleDeps;
 }

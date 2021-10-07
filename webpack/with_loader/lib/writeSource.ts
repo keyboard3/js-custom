@@ -1,10 +1,13 @@
+import { isContextModule } from "./util";
+
 /*
 	MIT License http://www.opensource.org/licenses/mit-license.php
 	Author Tobias Koppers @sokra
 */
-export default function (module: Partial<Module & ContextModule>, options: Partial<Options>, toRealId: (id: number) => Module["realId"]) {
+export default function (module: Partial<Module | ContextModule>, options: Partial<Options>, toRealId: (id: number) => Module["realId"]) {
 	var result;
-	if (typeof module.source !== "string") {
+	if (isContextModule(module)) {
+		/** 建立 contextModule 模块内容，返回一个闭包函数，使得可以通过文件名来代理访问到实际模块 */
 		if (module.requireMap) {
 			var extensions = (options.resolve && options.resolve.extensions) || [".web.js", ".js"];
 			var extensionsAccess = [];
@@ -25,59 +28,10 @@ export default function (module: Partial<Module & ContextModule>, options: Parti
 		} else
 			return;
 	} else {
-		var freeVars = {};
-		var replaces = []; // { from: 123, to: 125, value: "4" }
+		var freeVars: { [key: string]: CommonJsRequireDependency } = {};
+		var replaces: SourceReplaceItem[] = []; // { from: 123, to: 125, value: "4" }
 		var modulePrepends = [];
 		var moduleAppends = [];
-		function genReplaceRequire(requireItem) {
-			if (requireItem.id !== undefined && toRealId(requireItem.id) !== undefined) {
-				var prefix = "";
-				if (requireItem.name)
-					prefix += "/* " + requireItem.name + " */";
-				if (requireItem.expressionRange) {
-					replaces.push({
-						from: requireItem.expressionRange[0],
-						to: requireItem.expressionRange[1],
-						value: "require(" + prefix + toRealId(requireItem.id) + ")" + (requireItem.append || "")
-					});
-				} else if (requireItem.valueRange) {
-					replaces.push({
-						from: requireItem.valueRange[0],
-						to: requireItem.valueRange[1],
-						value: prefix + toRealId(requireItem.id)
-					});
-				} else if (requireItem.variable) {
-					if (!freeVars[requireItem.variable]) {
-						freeVars[requireItem.variable] = requireItem;
-					}
-				}
-			}
-		}
-		function genContextReplaces(contextItem) {
-			var postfix = "";
-			var prefix = "";
-			if (contextItem.name)
-				prefix += "/* " + contextItem.name + " */";
-			if (contextItem.require) {
-				replaces.push({
-					from: contextItem.calleeRange[0],
-					to: contextItem.calleeRange[1],
-					value: "require(" + prefix + (((contextItem.id && toRealId(contextItem.id)) || JSON.stringify("context: " + contextItem.name || "context failed")) + "") + ")"
-				});
-				if (contextItem.replace)
-					replaces.push({
-						from: contextItem.replace[0][0],
-						to: contextItem.replace[0][1],
-						value: JSON.stringify(contextItem.replace[1])
-					});
-			} else {
-				replaces.push({
-					from: contextItem.expressionRange[0],
-					to: contextItem.expressionRange[1],
-					value: "require(" + prefix + (((contextItem.id && toRealId(contextItem.id)) || JSON.stringify("context: " + contextItem.name || "context failed")) + "") + ")" + postfix
-				});
-			}
-		}
 		if (module.requires) {
 			module.requires.forEach(genReplaceRequire);
 		}
@@ -97,6 +51,7 @@ export default function (module: Partial<Module & ContextModule>, options: Parti
 				if (asyncItem.contexts) {
 					asyncItem.contexts.forEach(genContextReplaces);
 				}
+				/** 将 require.ensure([],()=>{}) => require.ensure(id,()=>{}) */
 				if (asyncItem.namesRange) {
 					replaces.push({
 						from: asyncItem.namesRange[0],
@@ -109,47 +64,6 @@ export default function (module: Partial<Module & ContextModule>, options: Parti
 				}
 				freeVars = oldFreeVars;
 			});
-		}
-		function genReplacesFreeVars(blockRange, freeVars) {
-			var keys = Object.keys(freeVars);
-			var values = [];
-			var removeKeys = [];
-			keys.forEach(function (key, idx) {
-				if (freeVars[key].id === module.id) {
-					removeKeys.push(idx);
-				} else {
-					values.push(freeVars[key]);
-				}
-			});
-			removeKeys.reverse().forEach(function (idx) {
-				keys.splice(idx, 1);
-			});
-			if (keys.length === 0) return;
-			values.forEach(function (requireItem, idx) {
-				if (requireItem.id !== undefined && toRealId(requireItem.id) !== undefined) {
-					var prefix = "";
-					if (requireItem.name)
-						prefix += "/* " + requireItem.name + " */";
-					values[idx] = "require(" + prefix + toRealId(requireItem.id) + ")" + (requireItem.append || "");
-				}
-			});
-			var start = "/* WEBPACK FREE VAR INJECTION */ (function(" + keys.join(",") + ") {";
-			var end = "/* WEBPACK FREE VAR INJECTION */ }(" + values.join(",") + "))"
-			if (blockRange) {
-				replaces.push({
-					from: blockRange[0],
-					to: blockRange[0] - 1,
-					value: start
-				});
-				replaces.push({
-					from: blockRange[1],
-					to: blockRange[1] - 1,
-					value: end
-				});
-			} else {
-				modulePrepends.unshift("/******/ " + start + "\n");
-				moduleAppends.push("\n/******/ " + end);
-			}
 		}
 		genReplacesFreeVars(null, freeVars);
 		replaces.sort(function (a, b) {
@@ -166,8 +80,111 @@ export default function (module: Partial<Module & ContextModule>, options: Parti
 			);
 		});
 		result = result.join("");
+		function genReplaceRequire(requireItem: CommonJsRequireDependency) {
+			if (requireItem.id !== undefined && toRealId(requireItem.id) !== undefined) {
+				var prefix = "";
+				/** 添加注释的模块名 */
+				if (requireItem.name)
+					prefix += "/* " + requireItem.name + " */";
+
+				if (requireItem.expressionRange) {
+					/** require(xx)*/
+					replaces.push({
+						from: requireItem.expressionRange[0],
+						to: requireItem.expressionRange[1],
+						value: "require(" + prefix + toRealId(requireItem.id) + ")" + (requireItem.append || "")
+					});
+				} else if (requireItem.valueRange) {
+					/** require(condition?"moduleA","moduleB") */
+					replaces.push({
+						from: requireItem.valueRange[0],
+						to: requireItem.valueRange[1],
+						value: prefix + toRealId(requireItem.id)
+					});
+				} else if (requireItem.variable) {
+					/** var a = $; variable=$ */
+					if (!freeVars[requireItem.variable]) {
+						freeVars[requireItem.variable] = requireItem;
+					}
+				}
+			}
+		}
+		function genContextReplaces(contextItem: RequireContextDependency) {
+			var postfix = "";
+			var prefix = "";
+			if (contextItem.name)
+				prefix += "/* " + contextItem.name + " */";
+			if (contextItem.require) {
+				/** require("a/name"+xx)*/
+				//第一步替换的是调用者 require=> require(id)
+				replaces.push({
+					from: contextItem.calleeRange[0],
+					to: contextItem.calleeRange[1],
+					value: "require(" + prefix + (((contextItem.id && toRealId(contextItem.id)) || JSON.stringify("context: " + contextItem.name || "context failed")) + "") + ")"
+				});
+				//第二步替换的是参数("a/name"+xx)=>("./"+xx);
+				if (contextItem.replace)
+					replaces.push({
+						from: contextItem.replace[0][0],
+						to: contextItem.replace[0][1],
+						value: JSON.stringify(contextItem.replace[1])
+					});
+			} else {
+				/** require.context("./templates") => require(id) */
+				replaces.push({
+					from: contextItem.expressionRange[0],
+					to: contextItem.expressionRange[1],
+					value: "require(" + prefix + (((contextItem.id && toRealId(contextItem.id)) || JSON.stringify("context: " + contextItem.name || "context failed")) + "") + ")" + postfix
+				});
+			}
+		}
+		function genReplacesFreeVars(blockRange: ExprRange | null, freeVars: { [key: string]: CommonJsRequireDependency }) {
+			var keys = Object.keys(freeVars);
+			let values: CommonJsRequireDependency[] = [];
+			var removeKeys = [];
+			keys.forEach(function (key, idx) {
+				/** 如果变量指向的模块就是当前模块就移除 */
+				if (freeVars[key].id === module.id) {
+					removeKeys.push(idx);
+				} else {
+					values.push(freeVars[key]);
+				}
+			});
+			removeKeys.reverse().forEach(function (idx) {
+				keys.splice(idx, 1);
+			});
+			if (keys.length === 0) return;
+			let strValues: string[] = [];
+			/** 将所有变量依赖都替换成 require(xx) */
+			values.forEach(function (requireItem, idx) {
+				if (requireItem.id !== undefined && toRealId(requireItem.id) !== undefined) {
+					var prefix = "";
+					if (requireItem.name)
+						prefix += "/* " + requireItem.name + " */";
+					strValues[idx] = "require(" + prefix + toRealId(requireItem.id) + ")" + (requireItem.append || "");
+				}
+			});
+			var start = "/* WEBPACK FREE VAR INJECTION */ (function(" + keys.join(",") + ") {";
+			var end = "/* WEBPACK FREE VAR INJECTION */ }(" + strValues.join(",") + "))"
+			/** 给回调函数体内报一个函数作用域，注入这些变量 require */
+			if (blockRange) {
+				replaces.push({
+					from: blockRange[0],
+					to: blockRange[0] - 1,
+					value: start
+				});
+				replaces.push({
+					from: blockRange[1],
+					to: blockRange[1] - 1,
+					value: end
+				});
+			} else {
+				modulePrepends.unshift("/******/ " + start + "\n");
+				moduleAppends.push("\n/******/ " + end);
+			}
+		}
 	}
-	var minimized = uglify(result, module.filename);
+	var minimized = uglify(result, (module as Partial<Module>).filename);
 	module.size = minimized.length;
 	if (options.debug) {
 		if (options.minimize) {
@@ -180,7 +197,7 @@ export default function (module: Partial<Module & ContextModule>, options: Parti
 			"// module.id = ", module.id, "\n",
 			"// module.realId = ", module.realId, "\n",
 			"// module.chunks = ", module.chunks.join(", "), "\n",
-			"//@ sourceURL=webpack-module://", encodeURI(module.filename).replace(/%5C|%2F/g, "/"),
+			"//@ sourceURL=webpack-module://", encodeURI((module as Module).filename).replace(/%5C|%2F/g, "/"),
 			")"].join("");
 	}
 	var finalResult = [];
@@ -190,7 +207,7 @@ export default function (module: Partial<Module & ContextModule>, options: Parti
 	return finalResult.join("");
 }
 
-function uglify(input, filename) {
+function uglify(input: string, filename?: string) {
 	var uglify = require("uglify-js");
 	var source: string;
 	try {

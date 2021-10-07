@@ -166,13 +166,13 @@ function walkExpression(context: Partial<Module>, expression) {
 				expression.callee.type === "Identifier" &&
 				expression.callee.name === "require") {
 				let param = parseString(expression.arguments[0]);
-				let requires: Partial<RequireModuleSource>[] = context.requires || [] as RequireModuleSource[];
+				let requires = context.requires || [];
 				requires.push({
 					name: param,
 					nameRange: expression.arguments[0].range,
 					line: expression.loc.start.line,
 					column: expression.loc.start.column
-				});
+				} as Partial<NormalDependency>);
 				context.requires = requires;
 			}
 			/** require.ensure([],()=>{}) require.async([],()=>{}) */
@@ -185,12 +185,12 @@ function walkExpression(context: Partial<Module>, expression) {
 				expression.callee.property.name in { async: 1, ensure: 1 }) {
 				let param = parseStringArray(expression.arguments[0]);
 				context.asyncs = context.asyncs || [];
-				var newContext: Partial<RequireEnsureSource> = {
+				var newContext = {
 					requires: [],
 					namesRange: expression.arguments[0].range,
 					line: expression.loc.start.line,
 					column: expression.loc.start.column
-				};
+				} as Partial<AsyncDependency>;
 				param.forEach(function (r) {
 					newContext.requires.push({ name: r });
 				});
@@ -235,11 +235,11 @@ function parseStringArray(expression) {
 	return [parseString(expression)];
 }
 
-export default function parse(source: string, options?: Options){
+export default function parse(source: string, options?: Options) {
 	var ast = esprima.parse(source, { range: true, loc: true });
 	if (!ast || typeof ast != "object")
 		throw new Error("Source couldn't be parsed");
-	var context: Partial<ModuleSource> = {};
+	var context = {};
 	walkStatements(context, ast.body);
-	return context;
+	return context as Partial<ModuleDeps>;
 }

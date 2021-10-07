@@ -70,15 +70,15 @@ function addModule(depTree: DepTree, context: string, moduleName: string, option
 				module.asyncs = deps.asyncs || [];
 				module.source = source;
 
-				var requires: { [key: RequireModuleSource["name"]]: RequireModuleSource[] } = {};
-				function add(r: RequireModuleSource) {
+				var requires: { [key: NormalDependency["name"]]: NormalDependency[] } = {};
+				function add(r: NormalDependency) {
 					requires[r.name] = requires[r.name] || [];
 					requires[r.name].push(r);
 				}
 				if (module.requires)
 					module.requires.forEach(add);
 				if (module.asyncs)
-					module.asyncs.forEach(function addContext(c: RequireEnsureSource) {
+					module.asyncs.forEach(function addContext(c: AsyncDependency) {
 						if (c.requires)
 							c.requires.forEach(add);
 						if (c.asyncs)

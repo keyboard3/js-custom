@@ -74,7 +74,7 @@ function webpack(context: string, moduleNameOrOptionsOrCallback: string | Partia
 			if (!options.outputPostfix) {
 				options.outputPostfix = "." + options.output;
 			}
-			var fileSizeMap = {};
+			var fileSizeMap: Stat["fileSizes"] = {};
 			var chunksCount = 0;
 			for (var chunkId in depTree.chunks) {
 				var chunk = depTree.chunks[chunkId];

@@ -1,4 +1,3 @@
-
 type PickArray<T extends unknown[]> = T extends (infer Ele)[] ? Ele : never;
 type Stat = {
   hash: string
@@ -26,23 +25,64 @@ type PackageJson = {
 }
 type ResolveType = "loader" | "context" | "normal"
 type Resolve = {
-  loaders: { test: RegExp, loader: string }[]
-  extensions: string[]
-  paths: string[]
+  /** 用来替换模块 {"old-module": "new-module"} */
   alias: { [key: string]: string }
+  /**
+   * 扩展 loader 的映射 {test: /\.extension$/, loader: "myloader"}
+   * 如果没有其他 loader 设置，则会去匹配这个正则找到相对应的 loader
+   * 自动追加了对 .coffee/.json/.jade/.css/.less 指定的 loader
+   */
+  loaders: { test: RegExp, loader: string }[]
+  /** 
+   * loader 模块名紧跟着的后缀
+   * 没有就默认: ["-webpack-web-loader", "-webpack-loader", "-web-loader", "-loader", ""]
+   */
+  loaderPostfixes: string[]
+  /** 
+   * loader 模块可能的文件后缀
+   * 没有就默认: [".webpack-web-loader.js", ".webpack-loader.js", ".web-loader.js", ".loader.js", "", ".js"]
+   */
+  loaderExtensions: string[]
+  /** 
+   * 搜索的路径组合,下面是自动追加在末尾
+   * absolutePath/buildin
+   * absolutePath/buildin/web_modules
+   * absolutePath/buildin/node_modules
+   * absolutePath/node_modules
+   */
+  paths: string[]
+  /**
+   * 模块名后缀
+   * 没有就默认: ["", "-webpack", "-web"]
+   */
+  postfixes: string[]
+  /** 
+  * 模块可能的文件后缀
+  * 未指定默认: ["", ".webpack.js", ".web.js", ".js"]
+  */
+  extensions: string[]
 }
 type Overwrite = {
-  require: boolean
+  /** 自定义的模块重写 */
+  [key: string]: any
+  /** 默认 __webpack_process */
   process: string
+  /** __webpack_module+(module) */
   module: string
+  /** __webpack_console */
   console: string
+  /** __webpack_global */
   global: string
+  /** buffer+.Buffer */
   Buffer: string
+  /** __webpack_dirname */
   "__dirname": string
+  /** __webpack_filename */
   "__filename": string
 }
 type Parse = {
   require?: boolean
+  /** 全局模块变量会被替换成指定模块 { "$": "jquery" } */
   overwrites: Partial<Overwrite>
 }
 type Options = Resolve & {
@@ -54,16 +94,14 @@ type Options = Resolve & {
   includeFilenames: boolean
   /** todo */
   debug: boolean
-  /** todo */
+  /** 在变动时重新编译(loader 除外) */
   watch: boolean
-  /** todo  */
-  events: any
+  /** nodejs 的事件监听  */
+  events: NodeJS.EventEmitter
   /** 声明库的名字 */
   library: string
   /** 将文件写入此目录（绝对路径） */
   outputDirectory: string
-  loaderPostfixes: string[]
-  postfixes: string[]
   /** 将第一个 chunk 写入到这个文件 */
   output: string
   /** 将其他 chunk 写入名为 chunkId 的文件加上 outputPostfix */
@@ -72,11 +110,10 @@ type Options = Resolve & {
   outputJsonpFunction: string
   /** todo */
   parse: Partial<Parse>
-  loaderExtensions: string[]
-  /** todo  */
+  /** 解析模块的相关配置  */
   resolve: Partial<Resolve>
 }
-type Reason = {
+type ModuleReason = {
   type: "main" | "require" | "async require" | "context" | "async context"
   count?: number
   filename?: string
@@ -85,8 +122,8 @@ interface DepTree {
   warnings: string[]
   errors: string[]
   modules: DepTree["modulesByFile"]
-  modulesByFile: { [key: Module["filename"]]: Partial<Module & ContextModule> }
-  modulesById: { [key: Module["id"]]: Partial<Module & ContextModule> }
+  modulesByFile: { [key: Module["filename"]]: Partial<Module | ContextModule> }
+  modulesById: { [key: Module["id"]]: Partial<Module | ContextModule> }
   chunks: { [key: Chunk["id"]]: Partial<Chunk> }
   nextModuleId: Module["id"]
   nextChunkId: Chunk["id"]
@@ -105,32 +142,35 @@ interface Chunk {
   /** 用于检查内部模块重复的 chunk,指向已经存在的 chunk */
   equals: Chunk["id"]
 }
-
-interface ModuleSource {
-  requires: Partial<RequireValueModuleSource | RequireExpressionModuleSource | RequireUnKnowModuleSource>[]
-  asyncs?: Partial<RequireEnsureSource>[]
-  contexts?: Partial<RequireCalleeModuleSource | RequireExpressionModuleSource>[]
-}
-
-interface Module extends RequireModuleSource, RequireEnsureSource {
+interface BaseModule {
+  /** 模块的创建顺序 id */
   id: number
+  /** 模块的名称排序 id */
   realId: number
-  /** 作为 chunk 的入口模块才有，其他模块没有 */
-  chunkId: Chunk["id"]
-  /** 被引用过 chunkId */
+  /** 目录名 or 模块名 */
+  name: string
+  /** 被引用过 chunkIds */
   chunks: Chunk["id"][]
+  /** 模块被引用的原因 */
+  reasons: ModuleReason[]
+  /** 模块被引用的次数 */
+  usages: number
+  size: number
+}
+interface Module extends BaseModule, ModuleDeps {
+  /** 作为主模块会记录主 chunk 的 id */
+  chunkId: Chunk["id"]
   /** 模块内容 */
   source: string
   /** 模块被检索到的实际文件地址 */
   filename: string
-  reasons: Reason[]
-  usages: number
-  size: number
 }
-interface ContextModule extends RequireModuleSource, RequireEnsureSource {
-  id: number
+interface ContextModule extends BaseModule {
+  /** 目录的绝对路径 */
   dirname: string
-  reasons: Reason[]
+  /** 目录下所有有效模块的依赖(自动解析依赖) */
+  requires: ModuleDeps["requires"]
+  /** 目录下所有有效模块的路径映射 */
   requireMap: { [key: Module["filename"]]: Module["id"] }
 }
 interface SourceReplaceItem {
