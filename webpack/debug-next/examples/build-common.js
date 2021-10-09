@@ -12,4 +12,9 @@ const displayReasons = ""// global.NO_REASONS ? "" : " --display-reasons --displ
 // const commonArgs = `--display-max-modules 99999 --display-origins --display-entrypoints --output-public-path "dist/" ${extraArgs} ${targetArgs}`;
 // const commonArgs = `--output-public-path "dist/" ${extraArgs} ${targetArgs}`;
 
-webpack({ entry: "./example.js", output: { filename: "ouput.js", publicPath: "dist" } });
+webpack({ entry: "./example.js", output: { filename: "ouput.js", publicPath: "dist" } }, (err, stat) => {
+	if (err) console.error(err.message);
+	if (stat) {
+		console.log(stat);
+	}
+});

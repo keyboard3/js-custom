@@ -7,7 +7,7 @@
     {
       "type": "pwa-node",
       "request": "launch",
-      "name": "webpack-loader-demo",
+      "name": "webpack-example",
       "skipFiles": ["<node_internals>/**"],
       "runtimeArgs": ["--preserve-symlinks"],
       "cwd": "${workspaceFolder}/examples/commonjs",
