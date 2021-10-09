@@ -1,0 +1,21 @@
+{
+  // 使用 IntelliSense 了解相关属性。
+  // 悬停以查看现有属性的描述。
+  // 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "pwa-node",
+      "request": "launch",
+      "name": "example",
+      "skipFiles": ["<node_internals>/**"],
+      "runtimeArgs": [
+        "--preserve-symlinks",
+        "--nolazy",
+        "-r",
+        "/Users/ganchunyu/.nvm/versions/node/v16.0.0/lib/node_modules/ts-node/register/transpile-only"
+      ],
+      "program": "./debug.js"
+    }
+  ]
+}
