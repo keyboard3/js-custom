@@ -1,3 +1,13 @@
+# 前言
+- 第一步
+	- make install: `会在同项目级别获取 webpack 仓库源码`
+	- make: `第一个指令 main, 会在当前项目中关联 webpack 仓库`
+	- make v[number]: `指定 webpack 仓库 v1/v2/v3/v4/v5 版本，并初始化好 node_modules`
+	- make 5.0.0-rc.6: `指定具体 webpack 仓库源码的 tagName，并初始化 node_modules`
+- 第二步
+	- 进入 .vscode/launch.json 调整你想要 debug 的 example
+	- 在当前项目的 webpack 软连接文件夹浏览源码, 在自己感兴趣的位置加上断点
+	- 然后开始 vscode 的 debug 模式, 以 example 为入口调试 webpack 仓库源码
 # Examples
 ## Aggressive Merging
 [aggressive-merging](aggressive-merging) 
