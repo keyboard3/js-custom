@@ -1,0 +1,9 @@
+{
+  "name": "debug-next",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "devDependencies": {
+    "webpack-cli": "^4.9.0"
+  }
+}
