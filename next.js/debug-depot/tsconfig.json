@@ -4,5 +4,8 @@
     "target": "ES5",
     "allowJs": true,
     "esModuleInterop": true
+  },
+  "ts-node": {
+    "skipIgnore": true
   }
 }
