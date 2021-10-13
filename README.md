@@ -1,5 +1,6 @@
 # js-custom
 - [npm](./npm): `npm 文档翻译`
+- [debuger](./debugger): `node 调试原理实践`
 - [react](./react): `preact 的 breack change 实现的解读`
   - [preact 1 ](./react/preact_1): `最早单文件的优雅实现`
   - [preact 4](./react/preact_4): `代码重构拆分及性能优化`
