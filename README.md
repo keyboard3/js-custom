@@ -1,6 +1,8 @@
 # js-custom
+
 - [npm](./npm): `npm 文档翻译`
 - [debuger](./debugger): `node 调试原理实践`
+- [next.js debug-depot](./next.js/debug-depot): `在该 using-preact 示例项目可以 debug next.js 仓库 ts 源码以及 preact 源码`
 - [react](./react): `preact 的 breack change 实现的解读`
   - [preact 1 ](./react/preact_1): `最早单文件的优雅实现`
   - [preact 4](./react/preact_4): `代码重构拆分及性能优化`
@@ -10,8 +12,8 @@
   - [init commit 0.1](./webpack/init_commit): `浏览器模块核心打包过程, 多模块代码被单文件管理，构建模块映射对象，模块内的代码require从映射对象上找。异步就是通过jsonp将模块连接到这个全局映射对象上`
   - [with loader 0.3](./webpack/with_loader): `支持通过 loader 链来构建非 js 模块，也支持 json,coffe 扩展自动识别 loader`
   - [debug next](./webpack/debug-next): `通过 webpack exapmles 的案例 debug webpack 仓库源码(0.9~5.0+), 提供了部分示例的源码执行过程解析`
-      - 0.9: `确定了 plugin 的基础架构, 利用 plugin 监听整个打包流程的过程提供核心能力`
-      - 4.0: `调整了 plugin 的消息管道的结构为 hooks 结构, 核心打包过程没有变动`
+    - 0.9: `确定了 plugin 的基础架构, 利用 plugin 监听整个打包流程的过程提供核心能力`
+    - 4.0: `调整了 plugin 的消息管道的结构为 hooks 结构, 核心打包过程没有变动`
 - [requirejs](./requirejs)
   - [init commit 版本](./webpack/init_commit): `与webpack自动包装异步模块，同样的逻辑。异步jsonp加载包含模块代码回调函数的执行结果给上下文`
 - [TypeScript](./typescript): `官方案例实践`
@@ -32,6 +34,7 @@
       - [工具类型](./typescript/reference/utility-types.ts): `除了ThisType以及字面量类型的操作工具类型，其他工具均用通过类型操作符自己实现了一份`
   - - [ ] 声明文件: [声明引用](./typescript/declaration/declaration-reference.ts),[装饰器](./typescript/declaration/decorators.ts),[库结构](./typescript/declaration/library-structures)
   - - [ ] 项目配置
+
 - [Babel](./babel): `官方案例实践, 支持 make 动态构建`
   - [多种方式应用配置](./babel/es6-features/config.mjs)
   - [箭头函数示例及说明](./babel/es6-features/arrowFun.js)

@@ -3,6 +3,7 @@
 - [node.js 调试指南](https://nodejs.org/zh-cn/docs/guides/debugging-getting-started/)
 - [深入理解 Node.js Inspector](https://zhuanlan.zhihu.com/p/396463046)
 - [Node 调试指南](https://nodejs.org/zh-cn/docs/guides/debugging-getting-started/)
+- [vscode Node.js Debugging - SourceMap](https://code.visualstudio.com/docs/nodejs/nodejs-debugging#_source-maps)
 
 ## 基本原理
 Node.js 通过 --inspect 开启 inspector, 内部开启独立的线程启动 websoket 服务, 按照 inspector 协议来和调试客户端通信, 

@@ -11,7 +11,11 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run-script", "dev"],
       "skipFiles": ["<node_internals>/**"],
-      "type": "pwa-node"
+      "type": "pwa-node",
+      "outFiles": [
+        "${workspaceRoot}/*/node_modules/**/*.js",
+        "${workspaceRoot}/*/pages/*.js"
+      ]
     }
   ]
 }

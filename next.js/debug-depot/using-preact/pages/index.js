@@ -13,7 +13,6 @@ export default function Home() {
 
 export function getServerSideProps() {
   console.log("hello world");
-  debugger;
   return {
     props: {}
   };
