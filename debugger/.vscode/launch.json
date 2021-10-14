@@ -5,12 +5,16 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "type": "node",
+      "type": "pwa-node",
       "request": "launch",
       "name": "sourcemap via node",
       "cwd": "${workspaceRoot}/sourcemap-ts",
       "program": "./hello.js",
-      "sourceMaps": true
+      "sourceMaps": true,
+      "outFiles": [
+        "${workspaceRoot}/sourcemap-ts/node_modules/*.js",
+        "${workspaceRoot}/sourcemap-ts/*.js"
+      ]
     },
     {
       "name": "sourcemap via NPM",

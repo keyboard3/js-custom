@@ -2,6 +2,6 @@
   "scripts": {
     "sourceMap": "node ./sourcemap-ts/hello.js",
     "interval": "ts-node ./ts-file/interval.ts",
-    "remoteJs": "node --inspect ./remote/httpServer.js"
+    "remoteJs": "cd remote && mv lib.* node_modules && node --inspect ./httpServerSimple.js"
   }
 }

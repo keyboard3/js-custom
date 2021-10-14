@@ -2,14 +2,15 @@
   "name": "using-preact",
   "version": "1.0.0",
   "scripts": {
-    "dev": "node ../cli .",
-    "build": "node ../cli build .",
-    "start": "node ../cli start ."
+    "dev": "next",
+    "build": "next build",
+    "start": "next start"
   },
   "devDependencies": {
     "react-refresh": "^0.8.3"
   },
   "dependencies": {
+    "next": "9.5.5",
     "@prefresh/next": "^0.3.0",
     "preact": "^10.4.4",
     "preact-render-to-string": "^5.1.9",

@@ -1,22 +1,19 @@
-nextDir=~/dev/next.js/packages/next
-changeRoot=cd ${nextDir}/dist &&
+nextDir=~/work/dev/next.js/packages/next
+changeRoot=cd ./using-preact/node_modules/next &&
 main:
-	mkdir node_modules && cd node_modules && ln -s ${nextDir} .
-	cd ${nextDir} && mkdir -p dist
-	${changeRoot} ln -s ../bin .
-	${changeRoot} ln -s ../build .
-	${changeRoot} ln -s ../cli .
-	${changeRoot} ln -s ../client .
-	${changeRoot} ln -s ../compiled .
-	${changeRoot} ln -s ../export .
-	${changeRoot} ln -s ../lib .
-	${changeRoot} ln -s ../license.md .
-	${changeRoot} ln -s ../next-server .
-	${changeRoot} ln -s ../pages .
-	${changeRoot} ln -s ../server .
-	${changeRoot} ln -s ../telemetry .
-	${changeRoot} ln -s ../types .
-	node changeMain.js
+	${changeRoot} ln -s ${nextDir}/bin .
+	${changeRoot} ln -s ${nextDir}/build .
+	${changeRoot} ln -s ${nextDir}/cli .
+	${changeRoot} ln -s ${nextDir}/client .
+	${changeRoot} ln -s ${nextDir}/compiled .
+	${changeRoot} ln -s ${nextDir}/export .
+	${changeRoot} ln -s ${nextDir}/lib .
+	${changeRoot} ln -s ${nextDir}/next-server .
+	${changeRoot} ln -s ${nextDir}/pages .
+	${changeRoot} ln -s ${nextDir}/server .
+	${changeRoot} ln -s ${nextDir}/telemetry .
+	${changeRoot} ln -s ${nextDir}/types .
+link:
+	ln -s ${nextDir} .
 clean:
-	cd ${nextDir} && rm -rf dist
-	rm -rf node_modules
+	${changeRoot} rm -rf ./bin ./build ./cli ./client ./compiled ./export ./lib ./next-server ./pages ./server ./telemetry ./types

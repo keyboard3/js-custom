@@ -5,17 +5,13 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "type": "pwa-node",
+      "cwd": "${workspaceFolder}/using-preact",
+      "name": "using-preact",
       "request": "launch",
-      "name": "example",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run-script", "dev"],
       "skipFiles": ["<node_internals>/**"],
-      "runtimeArgs": [
-        "--preserve-symlinks",
-        "--nolazy",
-        "-r",
-        "/Users/ganchunyu/.nvm/versions/node/v16.0.0/lib/node_modules/ts-node/register/transpile-only"
-      ],
-      "program": "./debug.js"
+      "type": "pwa-node"
     }
   ]
 }
