@@ -1,5 +1,5 @@
 main:
-	cd ./node_modules
+	mkdir ./node_modules
 	cp lib* ./node_modules
 hello:
 	tsc --sourcemap hello.ts
