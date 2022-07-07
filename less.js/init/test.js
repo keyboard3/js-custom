@@ -1,10 +1,11 @@
 const { parser } = require("./parser");
-parser.parse(`
-.hello {
+let res = parser.parse(`.hello {
   background:red;
 }
 
 .world {
   background:blue;
 }
-`)
+`);
+
+console.log("css:\n", res.toCSS());
