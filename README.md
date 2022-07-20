@@ -1,4 +1,5 @@
 # js-custom
+- [deep](./other/deepClone.js): `自认为 js 特性考虑最全的 deepClone`
 - [less](./less.js/init/test.js): `早期 less 编译器，可debug调试`
 - [sass](./less.js/init/test.js): `早期 dart-sass 的纯 js 编译器，可debug调试`
 - [npm](./npm): `npm 文档翻译`
