@@ -1,4 +1,5 @@
 # js-custom
+- [babel 应用](./babel/demo/parseRoutes.js): `静态分析 ts 代码中 exports 数组中变量标识符所引用模块的值，按需生成代码`
 - [其他]
   - [my-koa](./other/my-koa.js): `简易 Node Web 框架实现洋葱模型`
   - [deep](./other/deepClone.js): `自认为 js 特性考虑最全的 deepClone`
