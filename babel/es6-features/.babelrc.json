@@ -13,5 +13,6 @@
         "corejs": "2.6.5"
       }
     ]
-  ]
+  ],
+  "plugins": [["@babel/plugin-proposal-decorators", { "legacy": true }]]
 }

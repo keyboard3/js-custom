@@ -1,8 +1,9 @@
 {
   "compilerOptions": {
+    "experimentalDecorators": true,
     "module": "CommonJS",
     "target": "ES5",
     "allowJs": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
   }
 }
