@@ -1,7 +1,8 @@
 #!/usr/bin/env node
+var fs = require('fs');
+var profiler = require('v8-profiler-node8');
 
 var path = require("path");
-var fs = require("fs");
 var argv = require("optimist")
 	.usage("Usage: $0 <input> <output>")
 
@@ -63,6 +64,7 @@ if (argv.libary) {
 
 import webpack from "./lib/webpack";
 
+profiler.startProfiling('1', true);
 if (argv.single) {
 	webpack(input, options, function (err, source) {
 		if (err) {
@@ -91,3 +93,10 @@ if (argv.single) {
 		console.log(stats);
 	});
 }
+
+
+var profile1 = profiler.stopProfiling();
+
+profile1.export()
+	.pipe(fs.createWriteStream(`cpuprofile-${Date.now()}.cpuprofile`))
+	.on('finish', () => profile1.delete());

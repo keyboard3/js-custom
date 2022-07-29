@@ -15,7 +15,7 @@ var ExampleApplication = React.createClass({
   }
 });
 var start = new Date().getTime();
-setInterval(function () {
+setTimeout(function () {
   React.renderComponent(
     <ExampleApplication elapsed={new Date().getTime() - start} />,
     document.body

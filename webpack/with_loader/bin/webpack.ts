@@ -11,6 +11,7 @@ import { sprintf } from "sprintf"
 import optimist from "optimist"
 import webpack from "../lib/webpack"
 import EventEmitter from "events"
+var profiler = require('v8-profiler-node8');
 
 var argv = optimist
 	.usage("Usage: $0 <input> <output>")
@@ -125,7 +126,7 @@ if (argv.alias) {
 function c(str) {
 	return argv.colors ? str : "";
 }
-
+profiler.startProfiling('1', true);
 if (!output) {
 	webpack(input, options, function (err, source: string) {
 		if (err) {
@@ -279,6 +280,13 @@ if (!output) {
 					console.log(c("\033[1m\033[31m") + "ERROR: " + error + c("\033[39m\033[22m"));
 				});
 			}
+
+			var profile1 = profiler.stopProfiling();
+
+			profile1.export()
+				.pipe(fs.createWriteStream(`cpuprofile-${Date.now()}.cpuprofile`))
+				.on('finish', () => profile1.delete());
 		}
 	});
 }
+
