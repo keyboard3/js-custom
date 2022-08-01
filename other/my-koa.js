@@ -6,6 +6,7 @@ class MyServer {
   constructor() {
     const handlers = this[MyServer.privateListKey] = [];
     this[MyServer.privateServerKey] = http.createServer((req, res) => {
+      /** 1.运行时绑定参数 */
       function wraperHandler(handler) {
         return async () => {
           if (!handler) return;
@@ -22,6 +23,15 @@ class MyServer {
     this[MyServer.privateListKey].push(handler);
   }
   listen(port, path, callback) {
+    /** 2. 执行之前倒着绑定, 利用柯里化提前在所有函数执行前绑定好参数 */
+    let nexts = this[MyServer.privateListKey];
+    let prev = async (next) => { await next() };
+    let next;
+    for (let i = nexts.length - 1; i >= 0; i--) {
+      next = nexts[i];
+      prev = next.bind(this, prev);
+    }
+    //next(req,res); <- createServer
     this[MyServer.privateServerKey].listen(port, path, callback);
   }
 }
